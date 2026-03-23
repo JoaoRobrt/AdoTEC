@@ -1,4 +1,4 @@
-package com.joao.adotec.model;
+package com.joao.adotec.models;
 
 import com.joao.adotec.enums.PetSize;
 import jakarta.persistence.Table;
