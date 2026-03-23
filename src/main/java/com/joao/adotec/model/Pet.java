@@ -1,9 +1,19 @@
 package com.joao.adotec.model;
 
 import com.joao.adotec.enums.PetSize;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 
+@Table
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Pet {
     private Long petId;
     private String petName;
@@ -12,4 +22,5 @@ public class Pet {
     private PetSize size;
     private String photoUrl;
     private Instant createdAt;
+
 }
