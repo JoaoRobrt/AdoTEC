@@ -60,14 +60,12 @@ public class AuthService {
             throw new RuntimeException("Error: Email is already in use!");
         }
 
-        // Create new user's account
         User user = new User(signUpRequest.getName(),
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
         Set<Role> roles = new HashSet<>();
 
-        // By default, everyone is an Adopter when registering through the API
         Role userRole = roleRepository.findByRoleName(AppRole.ROLE_ADOPTER)
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
         roles.add(userRole);
