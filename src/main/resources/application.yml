@@ -16,3 +16,7 @@ spring:
     jwtSecret: ${JWT_SECRET}
     jwtExpirationMs: ${JWT_EXPIRATION_MS}
     jwtCookieName: ${JWT_COOKIE_NAME}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
