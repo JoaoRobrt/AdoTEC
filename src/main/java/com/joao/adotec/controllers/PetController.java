@@ -2,6 +2,7 @@ package com.joao.adotec.controllers;
 
 import com.joao.adotec.dto.PetRequestDTO;
 import com.joao.adotec.dto.PetResponseDTO;
+import com.joao.adotec.dto.response.ApiResponse;
 import com.joao.adotec.services.PetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,35 +16,35 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PetController {
 
-     private final PetService petService;
+    private final PetService petService;
 
     @GetMapping
-    public ResponseEntity<List<PetResponseDTO>> getAllAvailablePets() {
+    public ResponseEntity<ApiResponse<List<PetResponseDTO>>> getAllAvailablePets() {
         List<PetResponseDTO> pets = petService.getAllAvailablePets();
-        return ResponseEntity.ok(pets);
+        return ResponseEntity.ok(ApiResponse.success("Pets retrieved successfully", pets));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PetResponseDTO> getPetById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<PetResponseDTO>> getPetById(@PathVariable Long id) {
         PetResponseDTO pet = petService.getPetById(id);
-        return ResponseEntity.ok(pet);
+        return ResponseEntity.ok(ApiResponse.success("Pet retrieved successfully", pet));
     }
 
     @PostMapping
-    public ResponseEntity<PetResponseDTO> createPet(@RequestBody PetRequestDTO petDto) {
+    public ResponseEntity<ApiResponse<PetResponseDTO>> createPet(@RequestBody PetRequestDTO petDto) {
         PetResponseDTO createdPet = petService.createPet(petDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPet);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Pet created successfully", createdPet));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PetResponseDTO> updatePet(@PathVariable Long id, @RequestBody PetRequestDTO petDto) {
+    public ResponseEntity<ApiResponse<PetResponseDTO>> updatePet(@PathVariable Long id, @RequestBody PetRequestDTO petDto) {
         PetResponseDTO updatedPet = petService.updatePet(id, petDto);
-        return ResponseEntity.ok(updatedPet);
+        return ResponseEntity.ok(ApiResponse.success("Pet updated successfully", updatedPet));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePet(@PathVariable Long id) {
-        petService.deletePet(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<PetResponseDTO>> deletePet(@PathVariable Long id) {
+        PetResponseDTO pet = petService.deletePet(id);
+        return ResponseEntity.ok(ApiResponse.success("Pet deleted successfully", pet));
     }
 }

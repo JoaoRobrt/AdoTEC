@@ -3,9 +3,11 @@ package com.joao.adotec.controllers;
 import com.joao.adotec.dto.LoginRequest;
 import com.joao.adotec.dto.SignupRequest;
 import com.joao.adotec.dto.UserInfoResponse;
+import com.joao.adotec.dto.response.ApiResponse;
 import com.joao.adotec.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,14 +22,14 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<UserInfoResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<UserInfoResponse>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         UserInfoResponse userInfoResponse = authService.authenticateUser(loginRequest);
-        return ResponseEntity.ok(userInfoResponse);
+        return ResponseEntity.ok(ApiResponse.success("User authenticated successfully", userInfoResponse));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        authService.registerUser(signUpRequest);
-        return ResponseEntity.ok("User registered successfully!");
+    public ResponseEntity<ApiResponse<UserInfoResponse>> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+        UserInfoResponse userInfoResponse = authService.registerUser(signUpRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered successfully", userInfoResponse));
     }
 }
