@@ -2,7 +2,9 @@ package com.joao.adotec.security.config;
 
 import com.joao.adotec.enums.AppRole;
 import com.joao.adotec.models.Role;
+import com.joao.adotec.models.User;
 import com.joao.adotec.repositories.RoleRepository;
+import com.joao.adotec.repositories.UserRepository;
 import com.joao.adotec.security.jwt.AuthEntryPointJwt;
 import com.joao.adotec.security.jwt.AuthTokenFilter;
 import com.joao.adotec.security.jwt.CustomAccessDeniedHandler;
@@ -25,6 +27,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
@@ -75,12 +79,39 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public CommandLineRunner initData(RoleRepository roleRepository) {
+    public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
+            // 1. Create Roles if they don't exist
             if (roleRepository.count() == 0) {
                 roleRepository.save(new Role(AppRole.ROLE_ADMIN));
                 roleRepository.save(new Role(AppRole.ROLE_EMPLOYEE));
                 roleRepository.save(new Role(AppRole.ROLE_ADOPTER));
+            }
+
+            // 2. Fetch Roles
+            Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN).orElseThrow(() -> new RuntimeException("Error: ADMIN Role is not found."));
+            Role employeeRole = roleRepository.findByRoleName(AppRole.ROLE_EMPLOYEE).orElseThrow(() -> new RuntimeException("Error: EMPLOYEE Role is not found."));
+            Role adopterRole = roleRepository.findByRoleName(AppRole.ROLE_ADOPTER).orElseThrow(() -> new RuntimeException("Error: ADOPTER Role is not found."));
+
+            // 3. Create Admin User
+            if (!userRepository.existsByEmail("admin@adotec.com")) {
+                User admin = new User("Admin User", "admin@adotec.com", passwordEncoder.encode("admin123"));
+                admin.setRoles(Set.of(adminRole, employeeRole, adopterRole));
+                userRepository.save(admin);
+            }
+
+            // 4. Create Employee User
+            if (!userRepository.existsByEmail("employee@adotec.com")) {
+                User employee = new User("Employee User", "employee@adotec.com", passwordEncoder.encode("employee123"));
+                employee.setRoles(Set.of(employeeRole, adopterRole));
+                userRepository.save(employee);
+            }
+
+            // 5. Create Adopter User
+            if (!userRepository.existsByEmail("adopter@adotec.com")) {
+                User adopter = new User("Adopter User", "adopter@adotec.com", passwordEncoder.encode("adopter123"));
+                adopter.setRoles(Set.of(adopterRole));
+                userRepository.save(adopter);
             }
         };
     }

@@ -27,7 +27,6 @@ public class PetService {
     public PetResponseDTO getPetById(Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pet not found with id: " + id));
-        // TODO: Create custom exception Handler
         return petMapper.toDTO(pet);
     }
 
@@ -52,10 +51,9 @@ public class PetService {
     }
 
     @Transactional
-    public void deletePet(Long id) {
-        if (!petRepository.existsById(id)) {
-             throw new RuntimeException("Pet not found with id: " + id);
-        }
-        petRepository.deleteById(id);
+    public PetResponseDTO deletePet(Long id) {
+       Pet pet = petRepository.findById(id).orElseThrow(() -> new RuntimeException("Pet not found with id: " + id));
+       petRepository.delete(pet);
+       return petMapper.toDTO(pet);
     }
 }
