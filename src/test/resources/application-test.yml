@@ -1,0 +1,23 @@
+# Test profile — uses H2 in-memory DB, no .env required
+spring:
+  datasource:
+    url: jdbc:h2:mem:adotec_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+  app:
+    jwtSecret: dGVzdFNlY3JldEtleUZvckFkb1RFQ1Byb2plY3QxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ
+    jwtExpirationMs: 86400000
+    jwtCookieName: adotec_jwt_test
+  mail:
+    host: smtp.mailtrap.io
+    port: 587
+    username: test
+    password: test

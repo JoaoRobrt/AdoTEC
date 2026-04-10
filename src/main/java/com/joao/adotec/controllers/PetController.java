@@ -4,9 +4,11 @@ import com.joao.adotec.dto.PetRequestDTO;
 import com.joao.adotec.dto.PetResponseDTO;
 import com.joao.adotec.dto.response.ApiResponse;
 import com.joao.adotec.services.PetService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,20 +33,24 @@ public class PetController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PetResponseDTO>> createPet(@RequestBody PetRequestDTO petDto) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
+    public ResponseEntity<ApiResponse<PetResponseDTO>> createPet(@Valid @RequestBody PetRequestDTO petDto) {
         PetResponseDTO createdPet = petService.createPet(petDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Pet created successfully", createdPet));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<PetResponseDTO>> updatePet(@PathVariable Long id, @RequestBody PetRequestDTO petDto) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
+    public ResponseEntity<ApiResponse<PetResponseDTO>> updatePet(@PathVariable Long id, @Valid @RequestBody PetRequestDTO petDto) {
         PetResponseDTO updatedPet = petService.updatePet(id, petDto);
         return ResponseEntity.ok(ApiResponse.success("Pet updated successfully", updatedPet));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
     public ResponseEntity<ApiResponse<PetResponseDTO>> deletePet(@PathVariable Long id) {
-        PetResponseDTO pet = petService.deletePet(id);
-        return ResponseEntity.ok(ApiResponse.success("Pet deleted successfully", pet));
+        PetResponseDTO deletedPet = petService.deletePet(id);
+        return ResponseEntity.ok(ApiResponse.success("Pet deleted successfully", deletedPet));
     }
 }
+
