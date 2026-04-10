@@ -21,7 +21,8 @@ public class PetService {
 
     @Transactional(readOnly = true)
     public Page<PetResponseDTO> getAllAvailablePets(Pageable pageable) {
-        return petRepository.findByIsAvailableForAdoptionTrue(pageable).map(petMapper::toDTO);
+        // Filter: isAvailableForAdoption=true AND isActive=true (not soft-deleted)
+        return petRepository.findByIsAvailableForAdoptionTrueAndIsActiveTrue(pageable).map(petMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -51,11 +52,21 @@ public class PetService {
         return petMapper.toDTO(pet);
     }
 
+    /**
+     * Soft-deletes a pet by setting {@code isActive = false}.
+     * All linked appointments are preserved in the database so the Admin can
+     * still view the full adoption history (RF15). The pet will no longer
+     * appear in any public listing or be bookable for new appointments.
+     */
     @Transactional
     public PetResponseDTO deletePet(Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", id));
-        petRepository.delete(pet);
+
+        // Soft delete: flag the record as inactive instead of physically removing it.
+        pet.setIsActive(false);
+        petRepository.save(pet);
+
         return petMapper.toDTO(pet);
     }
 }

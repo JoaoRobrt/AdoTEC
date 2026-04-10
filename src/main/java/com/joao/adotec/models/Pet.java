@@ -13,6 +13,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -54,10 +55,19 @@ public class Pet {
     @Column(nullable = false)
     private Boolean isAvailableForAdoption = true;
 
+    /**
+     * Soft-delete flag. When {@code false}, the pet is logically deleted.
+     * Appointments linked to this pet are preserved for audit/history (RF15).
+     */
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    // Cascade kept for loading/navigation only; deletion is now soft, so
+    // orphanRemoval is removed to prevent accidental hard-deletes of appointments.
+    @OneToMany(mappedBy = "pet", fetch = FetchType.LAZY)
     private List<Appointment> appointments = new ArrayList<>();
 }

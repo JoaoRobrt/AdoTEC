@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
@@ -42,6 +44,20 @@ public class AppointmentService {
 
     @Transactional
     public Appointment createAppointment(User adopter, Pet pet, TimeSlot timeSlot) {
+
+        // ── Regra 1: TimeSlot não pode estar no passado ────────────────────────
+        if (timeSlot.getDate().isBefore(LocalDate.now())) {
+            throw new BusinessException(
+                    "Cannot schedule an appointment for a past date: " + timeSlot.getDate());
+        }
+
+        // ── Regra 2: Consistência do TimeSlot (endTime > startTime) ───────────
+        if (!timeSlot.getEndTime().isAfter(timeSlot.getStartTime())) {
+            throw new BusinessException(
+                    "TimeSlot is invalid: endTime must be after startTime (got "
+                    + timeSlot.getStartTime() + " → " + timeSlot.getEndTime() + ").");
+        }
+
         if (appointmentRepository.existsByAdopterAndTimeSlot(adopter, timeSlot)) {
             throw new BusinessException("Adopter already has an appointment for this time slot.");
         }
