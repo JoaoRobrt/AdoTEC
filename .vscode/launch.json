@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-Startup<AdoTEC>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.joao.adotec.Startup",
+            "projectName": "AdoTEC",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
