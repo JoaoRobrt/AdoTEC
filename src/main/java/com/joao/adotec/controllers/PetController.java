@@ -14,7 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.joao.adotec.dto.commons.PageMetaDTO;
+import com.joao.adotec.dto.commons.PageResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/pets")
@@ -29,9 +33,14 @@ public class PetController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved the list of pets")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PetResponseDTO>>> getAllAvailablePets() {
-        List<PetResponseDTO> pets = petService.getAllAvailablePets();
-        return ResponseEntity.ok(ApiResponse.success("Pets retrieved successfully", pets));
+    public ResponseEntity<ApiResponse<PageResponseDTO<PetResponseDTO>>> getAllAvailablePets(
+            @PageableDefault(size = 10, page = 0) Pageable pageable) {
+        Page<PetResponseDTO> petsPage = petService.getAllAvailablePets(pageable);
+        PageResponseDTO<PetResponseDTO> pageResponse = new PageResponseDTO<>(
+                petsPage.getContent(),
+                PageMetaDTO.fromPage(petsPage)
+        );
+        return ResponseEntity.ok(ApiResponse.success("Pets retrieved successfully", pageResponse));
     }
 
     @Operation(summary = "Get pet by ID", description = "Retrieves detailed information about a specific pet by its ID. Publicly accessible.")
@@ -55,7 +64,8 @@ public class PetController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
     public ResponseEntity<ApiResponse<PetResponseDTO>> createPet(@Valid @RequestBody PetRequestDTO petDto) {
         PetResponseDTO createdPet = petService.createPet(petDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Pet created successfully", createdPet));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Pet created successfully", createdPet));
     }
 
     @Operation(summary = "Update pet", description = "Updates an existing pet's information. Requires ADMIN or EMPLOYEE role.")
@@ -67,7 +77,8 @@ public class PetController {
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
-    public ResponseEntity<ApiResponse<PetResponseDTO>> updatePet(@PathVariable Long id, @Valid @RequestBody PetRequestDTO petDto) {
+    public ResponseEntity<ApiResponse<PetResponseDTO>> updatePet(@PathVariable Long id,
+            @Valid @RequestBody PetRequestDTO petDto) {
         PetResponseDTO updatedPet = petService.updatePet(id, petDto);
         return ResponseEntity.ok(ApiResponse.success("Pet updated successfully", updatedPet));
     }
@@ -85,4 +96,3 @@ public class PetController {
         return ResponseEntity.ok(ApiResponse.success("Pet deleted successfully", deletedPet));
     }
 }
-

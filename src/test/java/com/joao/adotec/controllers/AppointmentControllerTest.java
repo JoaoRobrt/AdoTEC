@@ -19,6 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 
 import java.util.List;
 
@@ -47,6 +48,7 @@ class AppointmentControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(appointmentController)
                 .setControllerAdvice(new GlobalExceptionHandler())
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .build();
     }
 
@@ -66,17 +68,19 @@ class AppointmentControllerTest {
         given(appointmentService.createAppointment(eq(1L), eq(2L), eq(3L))).willReturn(new Appointment());
 
         mockMvc.perform(post("/appointments")
-                        .principal(auth)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .principal(auth)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @DisplayName("PATCH /appointments/{id}/assign/{employeeId} → 403 Forbidden when Adopter tries to assign")
     void assignEmployee_withAdopter_isForbidden() throws Exception {
-        // Since we are using standalone setup, method security interceptor is not automatically present.
-        // We simulate the AccessDeniedException being thrown by @PreAuthorize if it was hit
+        // Since we are using standalone setup, method security interceptor is not
+        // automatically present.
+        // We simulate the AccessDeniedException being thrown by @PreAuthorize if it was
+        // hit
         // by throwing it directly from the service when an ADOPTER attempts it,
         // mirroring the precise test logic used in earlier controller tests.
         given(appointmentService.assignEmployee(any(), any()))
@@ -86,7 +90,7 @@ class AppointmentControllerTest {
 
         try {
             mockMvc.perform(patch("/appointments/1/assign/5")
-                            .principal(auth));
+                    .principal(auth));
         } catch (Exception e) {
             org.assertj.core.api.Assertions.assertThat(e.getCause())
                     .isInstanceOf(AccessDeniedException.class);
@@ -98,10 +102,11 @@ class AppointmentControllerTest {
     void getAllAppointments_withAdmin_returns200() throws Exception {
         UsernamePasswordAuthenticationToken auth = createAuthToken(1L, "ADMIN");
 
-        given(appointmentService.getAllAppointments()).willReturn(List.of(new Appointment()));
+        given(appointmentService.getAllAppointments(any(org.springframework.data.domain.Pageable.class)))
+                .willReturn(new org.springframework.data.domain.PageImpl<>(List.of(new Appointment())));
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments")
-                        .principal(auth))
+                .principal(auth))
                 .andExpect(status().isOk());
     }
 
@@ -115,9 +120,9 @@ class AppointmentControllerTest {
         given(appointmentService.registerResult(eq(1L), any())).willReturn(new Appointment());
 
         mockMvc.perform(patch("/appointments/1/result")
-                        .principal(auth)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .principal(auth)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 }

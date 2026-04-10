@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 
 import java.time.Instant;
 import java.util.List;
@@ -56,6 +57,7 @@ class PetControllerSecurityTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(petController)
                 .setControllerAdvice(new GlobalExceptionHandler())
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .build();
     }
 
@@ -78,12 +80,13 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("GET /pets → 200 and returns list")
     void listPets_shouldReturn200() throws Exception {
-        given(petService.getAllAvailablePets()).willReturn(List.of(samplePetResponse()));
+        given(petService.getAllAvailablePets(any(org.springframework.data.domain.Pageable.class)))
+                .willReturn(new org.springframework.data.domain.PageImpl<>(List.of(samplePetResponse())));
 
         mockMvc.perform(get("/pets"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].petName").value("Rex"));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].petName").value("Rex"));
     }
 
     @Test

@@ -7,10 +7,10 @@ import com.joao.adotec.mappers.PetMapper;
 import com.joao.adotec.models.Pet;
 import com.joao.adotec.repositories.PetRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +20,8 @@ public class PetService {
     private final PetMapper petMapper;
 
     @Transactional(readOnly = true)
-    public List<PetResponseDTO> getAllAvailablePets() {
-        return petMapper.toDTOList(petRepository.findByIsAvailableForAdoptionTrue());
+    public Page<PetResponseDTO> getAllAvailablePets(Pageable pageable) {
+        return petRepository.findByIsAvailableForAdoptionTrue(pageable).map(petMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -59,4 +59,3 @@ public class PetService {
         return petMapper.toDTO(pet);
     }
 }
-

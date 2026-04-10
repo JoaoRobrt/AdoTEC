@@ -12,10 +12,10 @@ import com.joao.adotec.repositories.PetRepository;
 import com.joao.adotec.repositories.TimeSlotRepository;
 import com.joao.adotec.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class AppointmentService {
     public Appointment createAppointment(Long adopterId, Long petId, Long timeSlotId) {
         User adopter = userRepository.findById(adopterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", adopterId));
-        
+
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", petId));
 
@@ -69,27 +69,27 @@ public class AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", employeeId));
 
         appointment.setEmployee(employee);
-        
+
         return appointmentRepository.save(appointment);
     }
 
     @Transactional(readOnly = true)
-    public List<Appointment> getAppointmentsByAdopter(Long adopterId) {
+    public Page<Appointment> getAppointmentsByAdopter(Long adopterId, Pageable pageable) {
         User adopter = userRepository.findById(adopterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", adopterId));
-        return appointmentRepository.findByAdopterOrderByCreatedAtDesc(adopter);
+        return appointmentRepository.findByAdopterOrderByCreatedAtDesc(adopter, pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<Appointment> getAppointmentsByEmployee(Long employeeId) {
+    public Page<Appointment> getAppointmentsByEmployee(Long employeeId, Pageable pageable) {
         User employee = userRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", employeeId));
-        return appointmentRepository.findByEmployeeOrderByCreatedAtDesc(employee);
+        return appointmentRepository.findByEmployeeOrderByCreatedAtDesc(employee, pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<Appointment> getAllAppointments() {
-        return appointmentRepository.findAll();
+    public Page<Appointment> getAllAppointments(Pageable pageable) {
+        return appointmentRepository.findAll(pageable);
     }
 
     @Transactional
