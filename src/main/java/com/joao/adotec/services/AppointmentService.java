@@ -2,20 +2,43 @@ package com.joao.adotec.services;
 
 import com.joao.adotec.enums.AppointmentStatus;
 import com.joao.adotec.exceptions.domain.BusinessException;
+import com.joao.adotec.exceptions.domain.ResourceNotFoundException;
 import com.joao.adotec.models.Appointment;
 import com.joao.adotec.models.Pet;
 import com.joao.adotec.models.TimeSlot;
 import com.joao.adotec.models.User;
 import com.joao.adotec.repositories.AppointmentRepository;
+import com.joao.adotec.repositories.PetRepository;
+import com.joao.adotec.repositories.TimeSlotRepository;
+import com.joao.adotec.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
+    private final UserRepository userRepository;
+    private final PetRepository petRepository;
+    private final TimeSlotRepository timeSlotRepository;
+
+    @Transactional
+    public Appointment createAppointment(Long adopterId, Long petId, Long timeSlotId) {
+        User adopter = userRepository.findById(adopterId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", adopterId));
+        
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pet", petId));
+
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new ResourceNotFoundException("TimeSlot", timeSlotId));
+
+        return createAppointment(adopter, pet, timeSlot);
+    }
 
     @Transactional
     public Appointment createAppointment(User adopter, Pet pet, TimeSlot timeSlot) {
@@ -35,5 +58,32 @@ public class AppointmentService {
         appointment.setStatus(AppointmentStatus.PENDING);
 
         return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public Appointment assignEmployee(Long appointmentId, Long employeeId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
+
+        User employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", employeeId));
+
+        appointment.setEmployee(employee);
+        
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Appointment> getAppointmentsByAdopter(Long adopterId) {
+        User adopter = userRepository.findById(adopterId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", adopterId));
+        return appointmentRepository.findByAdopterOrderByCreatedAtDesc(adopter);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Appointment> getAppointmentsByEmployee(Long employeeId) {
+        User employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", employeeId));
+        return appointmentRepository.findByEmployeeOrderByCreatedAtDesc(employee);
     }
 }

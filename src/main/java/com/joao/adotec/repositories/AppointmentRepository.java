@@ -12,4 +12,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     int countByTimeSlot(TimeSlot timeSlot);
 
     boolean existsByAdopterAndTimeSlot(User adopter, TimeSlot timeSlot);
+
+    java.util.List<Appointment> findByAdopterOrderByCreatedAtDesc(User adopter);
+
+    java.util.List<Appointment> findByEmployeeOrderByCreatedAtDesc(User employee);
 }
