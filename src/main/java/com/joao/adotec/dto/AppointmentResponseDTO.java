@@ -17,6 +17,8 @@ public class AppointmentResponseDTO {
     private Long appointmentId;
     private AppointmentStatus status;
     private Instant createdAt;
+    private com.joao.adotec.enums.AdoptionResult adoptionResult;
+    private String notes;
     
     private Long adopterId;
     private String adopterName;

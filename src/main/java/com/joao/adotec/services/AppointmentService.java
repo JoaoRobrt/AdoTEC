@@ -86,4 +86,27 @@ public class AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", employeeId));
         return appointmentRepository.findByEmployeeOrderByCreatedAtDesc(employee);
     }
+
+    @Transactional(readOnly = true)
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAll();
+    }
+
+    @Transactional
+    public Appointment registerResult(Long appointmentId, com.joao.adotec.dto.AppointmentResultDTO resultDto) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
+
+        appointment.setAdoptionResult(resultDto.getResult());
+        appointment.setNotes(resultDto.getNotes());
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+
+        if (resultDto.getResult() == com.joao.adotec.enums.AdoptionResult.APPROVED) {
+            Pet pet = appointment.getPet();
+            pet.setIsAvailableForAdoption(false);
+            petRepository.save(pet);
+        }
+
+        return appointmentRepository.save(appointment);
+    }
 }

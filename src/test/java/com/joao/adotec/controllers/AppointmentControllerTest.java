@@ -92,4 +92,32 @@ class AppointmentControllerTest {
                     .isInstanceOf(AccessDeniedException.class);
         }
     }
+
+    @Test
+    @DisplayName("GET /appointments → 200 OK (Admin successfully accesses endpoint)")
+    void getAllAppointments_withAdmin_returns200() throws Exception {
+        UsernamePasswordAuthenticationToken auth = createAuthToken(1L, "ADMIN");
+
+        given(appointmentService.getAllAppointments()).willReturn(List.of(new Appointment()));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments")
+                        .principal(auth))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("PATCH /appointments/{id}/result → 200 OK (Admin successfully accesses endpoint)")
+    void registerResult_withAdmin_returns200() throws Exception {
+        com.joao.adotec.dto.AppointmentResultDTO request = new com.joao.adotec.dto.AppointmentResultDTO(
+                com.joao.adotec.enums.AdoptionResult.APPROVED, "All good");
+        UsernamePasswordAuthenticationToken auth = createAuthToken(1L, "ADMIN");
+
+        given(appointmentService.registerResult(eq(1L), any())).willReturn(new Appointment());
+
+        mockMvc.perform(patch("/appointments/1/result")
+                        .principal(auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+    }
 }

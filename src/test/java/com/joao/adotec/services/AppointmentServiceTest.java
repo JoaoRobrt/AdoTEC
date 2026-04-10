@@ -30,6 +30,15 @@ class AppointmentServiceTest {
     @Mock
     private AppointmentRepository appointmentRepository;
 
+    @Mock
+    private com.joao.adotec.repositories.PetRepository petRepository;
+
+    @Mock
+    private com.joao.adotec.repositories.UserRepository userRepository;
+
+    @Mock
+    private com.joao.adotec.repositories.TimeSlotRepository timeSlotRepository;
+
     @InjectMocks
     private AppointmentService appointmentService;
 
@@ -95,5 +104,34 @@ class AppointmentServiceTest {
         assertThat(result.getPet()).isEqualTo(pet);
         assertThat(result.getTimeSlot()).isEqualTo(timeSlot);
         verify(appointmentRepository).save(any(Appointment.class));
+    }
+
+    @Test
+    @DisplayName("registerResult → Should set AdoptionResult, notes, change status to COMPLETED, and change Pet availability if APPROVED")
+    void registerResult_whenApproved_shouldUpdateAppointmentAndPet() {
+        // Arrange
+        Long appointmentId = 1L;
+        com.joao.adotec.dto.AppointmentResultDTO resultDto = new com.joao.adotec.dto.AppointmentResultDTO(
+                com.joao.adotec.enums.AdoptionResult.APPROVED, "Great adoption!");
+        
+        Pet pet = new Pet();
+        pet.setIsAvailableForAdoption(true);
+        
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId(appointmentId);
+        appointment.setPet(pet);
+        appointment.setStatus(AppointmentStatus.PENDING);
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
+        given(appointmentRepository.save(any(Appointment.class))).willReturn(appointment);
+
+        // Act
+        Appointment result = appointmentService.registerResult(appointmentId, resultDto);
+
+        // Assert
+        assertThat(result.getStatus()).isEqualTo(AppointmentStatus.COMPLETED);
+        assertThat(result.getAdoptionResult()).isEqualTo(com.joao.adotec.enums.AdoptionResult.APPROVED);
+        assertThat(result.getNotes()).isEqualTo("Great adoption!");
+        assertThat(pet.getIsAvailableForAdoption()).isFalse();
     }
 }

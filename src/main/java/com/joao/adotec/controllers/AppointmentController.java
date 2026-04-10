@@ -75,4 +75,25 @@ public class AppointmentController {
 
         return ResponseEntity.ok(ApiResponse.success("Appointments fetched successfully", responseData));
     }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<AppointmentResponseDTO>>> getAllAppointments() {
+        List<Appointment> appointments = appointmentService.getAllAppointments();
+        List<AppointmentResponseDTO> responseData = appointmentMapper.toDTOList(appointments);
+
+        return ResponseEntity.ok(ApiResponse.success("All appointments fetched successfully", responseData));
+    }
+
+    @PatchMapping("/{id}/result")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
+    public ResponseEntity<ApiResponse<AppointmentResponseDTO>> registerResult(
+            @PathVariable Long id,
+            @Valid @RequestBody com.joao.adotec.dto.AppointmentResultDTO resultDto) {
+
+        Appointment appointment = appointmentService.registerResult(id, resultDto);
+        AppointmentResponseDTO responseData = appointmentMapper.toDTO(appointment);
+
+        return ResponseEntity.ok(ApiResponse.success("Appointment result registered successfully", responseData));
+    }
 }

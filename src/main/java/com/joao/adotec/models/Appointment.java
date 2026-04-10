@@ -30,6 +30,12 @@ public class Appointment {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Enumerated(EnumType.STRING)
+    private com.joao.adotec.enums.AdoptionResult adoptionResult;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     // -----------------------------------------------------------------------
     // Relationships
     // -----------------------------------------------------------------------
