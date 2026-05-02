@@ -61,10 +61,6 @@ class PetControllerSecurityTest {
                 .build();
     }
 
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
     private PetRequestDTO validPetRequest() {
         return new PetRequestDTO("Rex", "A friendly dog", 12, PetSize.MEDIUM, null);
     }
@@ -72,10 +68,6 @@ class PetControllerSecurityTest {
     private PetResponseDTO samplePetResponse() {
         return new PetResponseDTO(1L, "Rex", "A friendly dog", 12, PetSize.MEDIUM, null, true, Instant.now());
     }
-
-    // -----------------------------------------------------------------------
-    // GET endpoints
-    // -----------------------------------------------------------------------
 
     @Test
     @DisplayName("GET /pets → 200 and returns list")

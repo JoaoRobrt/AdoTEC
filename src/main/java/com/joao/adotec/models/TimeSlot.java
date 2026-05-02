@@ -35,6 +35,6 @@ public class TimeSlot {
     @Column(nullable = false)
     private Integer maxAppointments;
 
-    @OneToMany(mappedBy = "timeSlot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "timeSlot", fetch = FetchType.LAZY)
     private List<Appointment> appointments = new ArrayList<>();
 }

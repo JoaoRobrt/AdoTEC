@@ -36,10 +36,11 @@ public class User {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "tb_user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "tb_user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     public User(String name, String email, String password) {
@@ -48,9 +49,9 @@ public class User {
         this.password = password;
     }
 
-    @OneToMany(mappedBy = "adopter", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "adopter", fetch = FetchType.LAZY)
     private List<Appointment> adopterAppointments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
     private List<Appointment> employeeAppointments = new ArrayList<>();
 }

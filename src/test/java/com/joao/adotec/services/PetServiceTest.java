@@ -36,18 +36,12 @@ class PetServiceTest {
     @InjectMocks
     private PetService petService;
 
-    // -----------------------------------------------------------------------
-    // getPetById — ResourceNotFoundException
-    // -----------------------------------------------------------------------
-
     @Test
     @DisplayName("getPetById → throws ResourceNotFoundException when pet does not exist")
     void getPetById_whenPetNotFound_shouldThrowResourceNotFoundException() {
-        // Arrange
         Long nonExistentId = 999L;
         given(petRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> petService.getPetById(nonExistentId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Pet")
@@ -57,11 +51,9 @@ class PetServiceTest {
     @Test
     @DisplayName("getPetById → ResourceNotFoundException maps to HTTP 404")
     void getPetById_whenPetNotFound_exceptionShouldHave404Status() {
-        // Arrange
         Long nonExistentId = 999L;
         given(petRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> petService.getPetById(nonExistentId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .satisfies(ex -> {
@@ -70,35 +62,24 @@ class PetServiceTest {
                 });
     }
 
-    // -----------------------------------------------------------------------
-    // updatePet — ResourceNotFoundException
-    // -----------------------------------------------------------------------
-
     @Test
     @DisplayName("updatePet → throws ResourceNotFoundException when pet does not exist")
     void updatePet_whenPetNotFound_shouldThrowResourceNotFoundException() {
-        // Arrange
         Long nonExistentId = 42L;
         given(petRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> petService.updatePet(nonExistentId, null))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("42");
     }
 
-    // -----------------------------------------------------------------------
-    // deletePet — ResourceNotFoundException
-    // -----------------------------------------------------------------------
-
     @Test
     @DisplayName("deletePet → throws ResourceNotFoundException when pet does not exist")
     void deletePet_whenPetNotFound_shouldThrowResourceNotFoundException() {
-        // Arrange
+
         Long nonExistentId = 7L;
         given(petRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> petService.deletePet(nonExistentId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("7");

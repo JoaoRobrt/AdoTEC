@@ -54,7 +54,7 @@ class AppointmentControllerTest {
 
     private UsernamePasswordAuthenticationToken createAuthToken(Long id, String role) {
         UserDetailsImpl userDetails = new UserDetailsImpl(
-                id, "Test User", "test@example.com", "pass",
+                id, "Test User", "test@example.com", "pass", true,
                 List.of(new SimpleGrantedAuthority("ROLE_" + role)));
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
