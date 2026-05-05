@@ -79,8 +79,7 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
 
-        User employee = userRepository.findById(employeeId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", employeeId));
+        User employee = getEmployeeValidated(employeeId);
 
         appointment.setEmployee(employee);
 
@@ -96,9 +95,26 @@ public class AppointmentService {
 
     @Transactional(readOnly = true)
     public Page<Appointment> getAppointmentsByEmployee(Long employeeId, Pageable pageable) {
+        User employee = getEmployeeValidated(employeeId);
+        return appointmentRepository.findByEmployeeOrderByCreatedAtDesc(employee, pageable);
+    }
+
+    private User getEmployeeValidated(Long employeeId) {
         User employee = userRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", employeeId));
-        return appointmentRepository.findByEmployeeOrderByCreatedAtDesc(employee, pageable);
+
+        boolean isEmployee = employee.getRoles().stream()
+                .anyMatch(role -> role.getRoleName() == com.joao.adotec.enums.AppRole.ROLE_EMPLOYEE);
+        if (!isEmployee) {
+            throw new BusinessException("User provided is not an employee.");
+        }
+        return employee;
+    }
+
+    @Transactional(readOnly = true)
+    public Appointment getAppointmentById(Long appointmentId) {
+        return appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
     }
 
     @Transactional(readOnly = true)
@@ -111,6 +127,10 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
 
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new BusinessException("Cannot update result for an appointment that is already COMPLETED.");
+        }
+
         appointment.setAdoptionResult(resultDto.getResult());
         appointment.setNotes(resultDto.getNotes());
         appointment.setStatus(AppointmentStatus.COMPLETED);
@@ -121,6 +141,23 @@ public class AppointmentService {
             petRepository.save(pet);
         }
 
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public Appointment cancelAppointment(Long appointmentId, Long loggedUserId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
+
+        if (!appointment.getAdopter().getUserId().equals(loggedUserId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to cancel this appointment.");
+        }
+
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new BusinessException("Cannot cancel an appointment that is already COMPLETED.");
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELED);
         return appointmentRepository.save(appointment);
     }
 }

@@ -2,6 +2,7 @@ package com.joao.adotec.services;
 
 import com.joao.adotec.enums.AppointmentStatus;
 import com.joao.adotec.exceptions.domain.BusinessException;
+import com.joao.adotec.exceptions.domain.ResourceNotFoundException;
 import com.joao.adotec.models.Appointment;
 import com.joao.adotec.models.Pet;
 import com.joao.adotec.models.TimeSlot;
@@ -133,5 +134,144 @@ class AppointmentServiceTest {
         assertThat(result.getAdoptionResult()).isEqualTo(com.joao.adotec.enums.AdoptionResult.APPROVED);
         assertThat(result.getNotes()).isEqualTo("Great adoption!");
         assertThat(pet.getIsAvailableForAdoption()).isFalse();
+    }
+
+    @Test
+    @DisplayName("registerResult → Should throw BusinessException if appointment is already COMPLETED")
+    void registerResult_whenStatusIsCompleted_shouldThrowBusinessException() {
+        // Arrange
+        Long appointmentId = 1L;
+        com.joao.adotec.dto.AppointmentResultDTO resultDto = new com.joao.adotec.dto.AppointmentResultDTO(
+                com.joao.adotec.enums.AdoptionResult.APPROVED, "Attempt to update completed");
+
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId(appointmentId);
+        appointment.setStatus(AppointmentStatus.COMPLETED); // Already completed
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
+
+        // Act & Assert
+        assertThatThrownBy(() -> appointmentService.registerResult(appointmentId, resultDto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Cannot update result for an appointment that is already COMPLETED.");
+    }
+    @Test
+    @DisplayName("assignEmployee → Should throw BusinessException when user is not an employee")
+    void assignEmployee_whenUserIsNotEmployee_shouldThrowBusinessException() {
+        // Arrange
+        Long appointmentId = 1L;
+        Long employeeId = 2L;
+
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId(appointmentId);
+
+        User nonEmployee = new User();
+        nonEmployee.setUserId(employeeId);
+        nonEmployee.getRoles().add(new com.joao.adotec.models.Role(com.joao.adotec.enums.AppRole.ROLE_ADOPTER));
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
+        given(userRepository.findById(employeeId)).willReturn(java.util.Optional.of(nonEmployee));
+
+        // Act & Assert
+        assertThatThrownBy(() -> appointmentService.assignEmployee(appointmentId, employeeId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("User provided is not an employee.");
+    }
+
+    @Test
+    @DisplayName("assignEmployee → Should successfully assign employee when user has ROLE_EMPLOYEE")
+    void assignEmployee_whenUserIsEmployee_shouldAssignEmployee() {
+        // Arrange
+        Long appointmentId = 1L;
+        Long employeeId = 2L;
+
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId(appointmentId);
+
+        User employeeUser = new User();
+        employeeUser.setUserId(employeeId);
+        employeeUser.getRoles().add(new com.joao.adotec.models.Role(com.joao.adotec.enums.AppRole.ROLE_EMPLOYEE));
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
+        given(userRepository.findById(employeeId)).willReturn(java.util.Optional.of(employeeUser));
+        given(appointmentRepository.save(any(Appointment.class))).willReturn(appointment);
+
+        // Act
+        Appointment result = appointmentService.assignEmployee(appointmentId, employeeId);
+
+        // Assert
+        assertThat(result.getEmployee()).isEqualTo(employeeUser);
+        verify(appointmentRepository).save(appointment);
+    }
+
+    @Test
+    @DisplayName("cancelAppointment → Should successfully cancel when adopter owns the appointment")
+    void cancelAppointment_whenOwner_shouldCancel() {
+        Long appointmentId = 1L;
+        Long loggedUserId = 10L;
+
+        User adopter = new User();
+        adopter.setUserId(loggedUserId);
+
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId(appointmentId);
+        appointment.setAdopter(adopter);
+        appointment.setStatus(AppointmentStatus.PENDING);
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
+        given(appointmentRepository.save(any(Appointment.class))).willReturn(appointment);
+
+        Appointment result = appointmentService.cancelAppointment(appointmentId, loggedUserId);
+
+        assertThat(result.getStatus()).isEqualTo(AppointmentStatus.CANCELED);
+        verify(appointmentRepository).save(appointment);
+    }
+
+    @Test
+    @DisplayName("cancelAppointment → Should throw AccessDeniedException when other user tries to cancel")
+    void cancelAppointment_whenNotOwner_shouldThrowAccessDeniedException() {
+        Long appointmentId = 1L;
+        Long loggedUserId = 99L; // Different from owner
+
+        User adopter = new User();
+        adopter.setUserId(10L); // Owner is 10
+
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId(appointmentId);
+        appointment.setAdopter(adopter);
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
+
+        assertThatThrownBy(() -> appointmentService.cancelAppointment(appointmentId, loggedUserId))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+                .hasMessage("You do not have permission to cancel this appointment.");
+    }
+
+    @Test
+    @DisplayName("getAppointmentById → Should return appointment when it exists")
+    void getAppointmentById_whenExists_shouldReturnAppointment() {
+        Long appointmentId = 1L;
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId(appointmentId);
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
+
+        Appointment result = appointmentService.getAppointmentById(appointmentId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getAppointmentId()).isEqualTo(appointmentId);
+    }
+
+    @Test
+    @DisplayName("getAppointmentById → Should throw ResourceNotFoundException when not found")
+    void getAppointmentById_whenNotFound_shouldThrowResourceNotFoundException() {
+        Long appointmentId = 999L;
+
+        given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.empty());
+
+        assertThatThrownBy(() -> appointmentService.getAppointmentById(appointmentId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Appointment")
+                .hasMessageContaining("999");
     }
 }

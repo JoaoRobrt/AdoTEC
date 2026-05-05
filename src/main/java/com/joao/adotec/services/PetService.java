@@ -20,15 +20,20 @@ public class PetService {
     private final PetMapper petMapper;
 
     @Transactional(readOnly = true)
-    public Page<PetResponseDTO> getAllAvailablePets(Pageable pageable) {
-        // Filter: isAvailableForAdoption=true AND isActive=true (not soft-deleted)
-        return petRepository.findByIsAvailableForAdoptionTrueAndIsActiveTrue(pageable).map(petMapper::toDTO);
+    public Page<PetResponseDTO> getAllAvailablePets(com.joao.adotec.enums.PetSize size, String name, Pageable pageable) {
+        // Filter: isAvailableForAdoption=true AND isActive=true (not soft-deleted), plus size and name
+        return petRepository.findAvailablePetsWithFilters(size, name, pageable).map(petMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
     public PetResponseDTO getPetById(Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", id));
+        
+        if (Boolean.FALSE.equals(pet.getIsActive()) || Boolean.FALSE.equals(pet.getIsAvailableForAdoption())) {
+            throw new ResourceNotFoundException("Pet", id);
+        }
+        
         return petMapper.toDTO(pet);
     }
 
@@ -59,14 +64,12 @@ public class PetService {
      * appear in any public listing or be bookable for new appointments.
      */
     @Transactional
-    public PetResponseDTO deletePet(Long id) {
+    public void deletePet(Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", id));
 
         // Soft delete: flag the record as inactive instead of physically removing it.
         pet.setIsActive(false);
         petRepository.save(pet);
-
-        return petMapper.toDTO(pet);
     }
 }

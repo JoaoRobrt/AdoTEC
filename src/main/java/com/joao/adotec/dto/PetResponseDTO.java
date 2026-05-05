@@ -7,6 +7,7 @@ import java.time.Instant;
 public record PetResponseDTO(
         Long petId,
         String petName,
+        String species,
         String description,
         Integer ageInMonths,
         PetSize size,
@@ -18,6 +19,7 @@ public record PetResponseDTO(
         this(
                 pet.getPetId(),
                 pet.getPetName(),
+                pet.getSpecies(),
                 pet.getDescription(),
                 pet.getAgeInMonths(),
                 pet.getSize(),

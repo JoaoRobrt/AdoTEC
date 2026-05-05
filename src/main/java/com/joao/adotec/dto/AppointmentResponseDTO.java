@@ -29,6 +29,5 @@ public class AppointmentResponseDTO {
     private Long petId;
     private String petName;
 
-    private Long timeSlotId;
-    private String timeSlotDetails; // could be Date + Time
+    private TimeSlotSummaryDTO timeSlot;
 }

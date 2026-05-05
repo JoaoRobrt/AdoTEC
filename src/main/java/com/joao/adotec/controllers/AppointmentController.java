@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class AppointmentController {
 
         private final AppointmentService appointmentService;
-        private final AppointmentMapper appointmentMapper = AppointmentMapper.INSTANCE;
+        private final AppointmentMapper appointmentMapper;
 
         @Operation(summary = "Create an appointment", description = "Allows an Adopter to schedule a visit for a specific pet in a given time slot.")
         @ApiResponses({
@@ -55,6 +55,18 @@ public class AppointmentController {
 
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(ApiResponse.success("Appointment scheduled successfully", responseData));
+        }
+
+        @Operation(summary = "Get appointment by ID", description = "Retrieves a specific appointment by its ID.")
+        @ApiResponses({
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Appointment retrieved successfully"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Appointment not found")
+        })
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<AppointmentResponseDTO>> getAppointmentById(@PathVariable Long id) {
+                Appointment appointment = appointmentService.getAppointmentById(id);
+                AppointmentResponseDTO responseData = appointmentMapper.toDTO(appointment);
+                return ResponseEntity.ok(ApiResponse.success("Appointment retrieved successfully", responseData));
         }
 
         @Operation(summary = "Assign employee to an appointment", description = "Allows an Admin to assign an employee to accompany an upcoming visit.")
@@ -147,4 +159,24 @@ public class AppointmentController {
                 return ResponseEntity
                                 .ok(ApiResponse.success("Appointment result registered successfully", responseData));
         }
+    @Operation(summary = "Cancel appointment", description = "Allows an Adopter to cancel their own appointment.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Appointment canceled successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied or not the owner"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Appointment not found")
+    })
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('ADOPTER')")
+    public ResponseEntity<ApiResponse<AppointmentResponseDTO>> cancelAppointment(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Long adopterId = userDetails.getId();
+
+        Appointment appointment = appointmentService.cancelAppointment(id, adopterId);
+        AppointmentResponseDTO responseData = appointmentMapper.toDTO(appointment);
+
+        return ResponseEntity.ok(ApiResponse.success("Appointment canceled successfully", responseData));
+    }
 }

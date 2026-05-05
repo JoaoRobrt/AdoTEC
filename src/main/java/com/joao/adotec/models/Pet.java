@@ -40,6 +40,9 @@ public class Pet {
     @Column(name = "pet_name", nullable = false)
     private String petName;
 
+    @Column(nullable = false)
+    private String species;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

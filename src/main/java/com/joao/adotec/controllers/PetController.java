@@ -33,8 +33,10 @@ public class PetController {
     })
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponseDTO<PetResponseDTO>>> getAllAvailablePets(
+            @RequestParam(required = false) com.joao.adotec.enums.PetSize size,
+            @RequestParam(required = false) String name,
             @PageableDefault(size = 10, page = 0) Pageable pageable) {
-        Page<PetResponseDTO> petsPage = petService.getAllAvailablePets(pageable);
+        Page<PetResponseDTO> petsPage = petService.getAllAvailablePets(size, name, pageable);
         PageResponseDTO<PetResponseDTO> pageResponse = new PageResponseDTO<>(
                 petsPage.getContent(),
                 PageMetaDTO.fromPage(petsPage)
@@ -84,14 +86,14 @@ public class PetController {
 
     @Operation(summary = "Delete pet", description = "Deletes a pet from the system by ID (or performs a logical deletion depending on implementation). Requires ADMIN or EMPLOYEE role.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Pet deleted successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Pet deleted successfully"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Pet not found")
     })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
-    public ResponseEntity<ApiResponse<PetResponseDTO>> deletePet(@PathVariable Long id) {
-        PetResponseDTO deletedPet = petService.deletePet(id);
-        return ResponseEntity.ok(ApiResponse.success("Pet deleted successfully", deletedPet));
+    public ResponseEntity<Void> deletePet(@PathVariable Long id) {
+        petService.deletePet(id);
+        return ResponseEntity.noContent().build();
     }
 }

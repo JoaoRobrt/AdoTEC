@@ -16,4 +16,12 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
 
     /** Legacy alias kept for reference — now delegates to the above. */
     Page<Pet> findByIsAvailableForAdoptionTrue(Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Pet p WHERE p.isAvailableForAdoption = true AND p.isActive = true " +
+           "AND (:size IS NULL OR p.size = :size) " +
+           "AND (:name IS NULL OR LOWER(p.petName) LIKE LOWER(CONCAT('%', :name, '%')))")
+    Page<Pet> findAvailablePetsWithFilters(
+            @org.springframework.data.repository.query.Param("size") com.joao.adotec.enums.PetSize size, 
+            @org.springframework.data.repository.query.Param("name") String name, 
+            Pageable pageable);
 }

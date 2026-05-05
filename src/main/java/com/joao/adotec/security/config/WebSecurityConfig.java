@@ -55,6 +55,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // Swagger moved to WebSecurityCustomizer
                         .requestMatchers(HttpMethod.GET, "/pets", "/pets/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/timeslots").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

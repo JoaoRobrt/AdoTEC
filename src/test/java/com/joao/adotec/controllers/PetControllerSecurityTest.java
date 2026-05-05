@@ -62,23 +62,24 @@ class PetControllerSecurityTest {
     }
 
     private PetRequestDTO validPetRequest() {
-        return new PetRequestDTO("Rex", "A friendly dog", 12, PetSize.MEDIUM, null);
+        return new PetRequestDTO("Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, null);
     }
 
     private PetResponseDTO samplePetResponse() {
-        return new PetResponseDTO(1L, "Rex", "A friendly dog", 12, PetSize.MEDIUM, null, true, Instant.now());
+        return new PetResponseDTO(1L, "Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, null, true, Instant.now());
     }
 
     @Test
     @DisplayName("GET /pets → 200 and returns list")
     void listPets_shouldReturn200() throws Exception {
-        given(petService.getAllAvailablePets(any(org.springframework.data.domain.Pageable.class)))
+        given(petService.getAllAvailablePets(any(), any(), any(org.springframework.data.domain.Pageable.class)))
                 .willReturn(new org.springframework.data.domain.PageImpl<>(List.of(samplePetResponse())));
 
         mockMvc.perform(get("/pets"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isArray())
-                .andExpect(jsonPath("$.data.content[0].petName").value("Rex"));
+                .andExpect(jsonPath("$.data.content[0].petName").value("Rex"))
+                .andExpect(jsonPath("$.data.content[0].species").value("Dog"));
     }
 
     @Test
@@ -161,7 +162,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("POST /pets → 400 when petName is blank")
     void createPet_blankName_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("", "desc", 6, PetSize.SMALL, null);
+        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.SMALL, null);
         mockMvc.perform(post("/pets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -171,7 +172,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("POST /pets → 400 when size is null")
     void createPet_nullSize_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("Rex", "desc", 6, null, null);
+        PetRequestDTO invalid = new PetRequestDTO("Rex", "Dog", "desc", 6, null, null);
         mockMvc.perform(post("/pets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -193,7 +194,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("PUT /pets/{id} → 400 when petName is blank")
     void updatePet_blankName_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("", "desc", 6, PetSize.BIG, null);
+        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.BIG, null);
         mockMvc.perform(put("/pets/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -209,6 +210,24 @@ class PetControllerSecurityTest {
         mockMvc.perform(put("/pets/999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validPetRequest())))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("DELETE /pets/{id} → 204 No Content when pet exists")
+    void deletePet_exists_shouldReturn204() throws Exception {
+        // petService.deletePet is void — no stubbing needed (default does nothing)
+        mockMvc.perform(delete("/pets/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("DELETE /pets/{id} → 404 when pet not found")
+    void deletePet_notFound_shouldReturn404() throws Exception {
+        org.mockito.Mockito.doThrow(new ResourceNotFoundException("Pet", 999L))
+                .when(petService).deletePet(999L);
+
+        mockMvc.perform(delete("/pets/999"))
                 .andExpect(status().isNotFound());
     }
 }

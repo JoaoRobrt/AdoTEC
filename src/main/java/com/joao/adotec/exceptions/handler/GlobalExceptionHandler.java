@@ -70,6 +70,30 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingParam(
+            org.springframework.web.bind.MissingServletRequestParameterException ex,
+            HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Missing Required Parameter");
+        problem.setDetail("Required parameter '" + ex.getParameterName() + "' is not present.");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleTypeMismatch(
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Invalid Parameter Type");
+        problem.setDetail("Parameter '" + ex.getName() + "' has an invalid value: " + ex.getValue());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
     @ExceptionHandler(Exception.class)
     public final ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) throws Exception {
         if (ex instanceof AuthenticationException || ex instanceof AccessDeniedException) {

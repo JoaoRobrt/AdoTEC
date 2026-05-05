@@ -9,6 +9,9 @@ public record PetRequestDTO(
         @NotBlank(message = "Pet name is required")
         String petName,
 
+        @NotBlank(message = "Species is required")
+        String species,
+
         String description,
 
         Integer ageInMonths,

@@ -24,11 +24,11 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         Map<String, Object> body = new HashMap<>();
-
-        body.put("path", request.getServletPath());
-        body.put("error", "Forbidden");
-        body.put("message", "You do not have permission to access this resource");
+        body.put("type", "about:blank");
+        body.put("title", "Forbidden");
         body.put("status", 403);
+        body.put("detail", "You do not have permission to access this resource");
+        body.put("instance", request.getRequestURI());
 
         new ObjectMapper().writeValue(response.getOutputStream(), body);
     }

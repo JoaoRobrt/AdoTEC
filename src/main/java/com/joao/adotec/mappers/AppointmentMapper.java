@@ -19,9 +19,14 @@ public interface AppointmentMapper {
     @Mapping(target = "employeeName", source = "employee.name")
     @Mapping(target = "petId", source = "pet.petId")
     @Mapping(target = "petName", source = "pet.petName")
-    @Mapping(target = "timeSlotId", source = "timeSlot.timeSlotId")
-    @Mapping(target = "timeSlotDetails", expression = "java(appointment.getTimeSlot() != null ? appointment.getTimeSlot().getDate().toString() + \" \" + appointment.getTimeSlot().getStartTime().toString() : null)")
+    @Mapping(target = "timeSlot", source = "timeSlot")
     AppointmentResponseDTO toDTO(Appointment appointment);
+
+    @Mapping(target = "timeSlotId", source = "timeSlotId")
+    @Mapping(target = "date", source = "date")
+    @Mapping(target = "startTime", source = "startTime")
+    @Mapping(target = "endTime", source = "endTime")
+    com.joao.adotec.dto.TimeSlotSummaryDTO toTimeSlotSummary(com.joao.adotec.models.TimeSlot timeSlot);
 
     List<AppointmentResponseDTO> toDTOList(List<Appointment> appointments);
 }

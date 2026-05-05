@@ -5,6 +5,8 @@ import com.joao.adotec.dto.AppointmentRequestDTO;
 import com.joao.adotec.exceptions.handler.GlobalExceptionHandler;
 import com.joao.adotec.models.Appointment;
 import com.joao.adotec.security.services.UserDetailsImpl;
+import com.joao.adotec.dto.AppointmentResponseDTO;
+import com.joao.adotec.mappers.AppointmentMapper;
 import com.joao.adotec.services.AppointmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +39,9 @@ class AppointmentControllerTest {
 
     @Mock
     private AppointmentService appointmentService;
+
+    @Mock
+    private AppointmentMapper appointmentMapper;
 
     @InjectMocks
     private AppointmentController appointmentController;
@@ -124,5 +130,38 @@ class AppointmentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
+    }
+    @Test
+    @DisplayName("PATCH /appointments/{id}/cancel → 200 OK (Adopter successfully accesses endpoint)")
+    void cancelAppointment_withAdopter_returns200() throws Exception {
+        UsernamePasswordAuthenticationToken auth = createAuthToken(10L, "ADOPTER");
+
+        given(appointmentService.cancelAppointment(eq(1L), eq(10L))).willReturn(new Appointment());
+
+        mockMvc.perform(patch("/appointments/1/cancel")
+                .principal(auth)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /appointments/{id} → 200 OK when appointment exists")
+    void getAppointmentById_exists_returns200() throws Exception {
+        given(appointmentService.getAppointmentById(eq(1L))).willReturn(new Appointment());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Appointment retrieved successfully"));
+    }
+
+    @Test
+    @DisplayName("GET /appointments/{id} → 404 when appointment not found")
+    void getAppointmentById_notFound_returns404() throws Exception {
+        given(appointmentService.getAppointmentById(eq(999L)))
+                .willThrow(new com.joao.adotec.exceptions.domain.ResourceNotFoundException("Appointment", 999L));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value("Appointment not found with id: 999"));
     }
 }

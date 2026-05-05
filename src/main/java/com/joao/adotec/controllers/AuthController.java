@@ -46,4 +46,21 @@ public class AuthController {
         UserInfoResponse userInfoResponse = authService.registerUser(signUpRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered successfully", userInfoResponse));
     }
+
+    @Operation(summary = "Get current user", description = "Returns the authenticated user data.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "User info retrieved successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
+    @org.springframework.web.bind.annotation.GetMapping("/me")
+    public ResponseEntity<ApiResponse<com.joao.adotec.dto.UserResponse>> getCurrentUser(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal com.joao.adotec.security.services.UserDetailsImpl userDetails) {
+        
+        com.joao.adotec.dto.UserResponse response = new com.joao.adotec.dto.UserResponse(
+                userDetails.getId(),
+                userDetails.getName(),
+                userDetails.getEmail()
+        );
+        return ResponseEntity.ok(ApiResponse.success("User info retrieved successfully", response));
+    }
 }

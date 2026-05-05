@@ -34,16 +34,17 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         Map<String, Object> body = new HashMap<>();
+        body.put("type", "about:blank");
+        body.put("title", "Unauthorized");
         body.put("status", 401);
-        body.put("error", "Unauthorized");
-
+        
         if (authException instanceof BadCredentialsException) {
-            body.put("message", "Invalid email or password");
+            body.put("detail", "Invalid email or password");
         } else {
-            body.put("message", authException.getMessage());
+            body.put("detail", authException.getMessage());
         }
 
-        body.put("path", request.getServletPath());
+        body.put("instance", request.getRequestURI());
 
         new ObjectMapper().writeValue(response.getOutputStream(), body);
     }
