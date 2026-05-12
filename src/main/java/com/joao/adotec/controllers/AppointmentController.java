@@ -63,6 +63,7 @@ public class AppointmentController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Appointment not found")
         })
         @GetMapping("/{id}")
+        @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<AppointmentResponseDTO>> getAppointmentById(@PathVariable Long id) {
                 Appointment appointment = appointmentService.getAppointmentById(id);
                 AppointmentResponseDTO responseData = appointmentMapper.toDTO(appointment);
