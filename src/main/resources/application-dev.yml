@@ -3,17 +3,16 @@ spring:
     name: AdoTEC
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create-only
-    #show-sql: true
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
@@ -24,7 +23,7 @@ spring:
 
 logging:
   level:
-    org.springframework.security: INFO
+    org.springframework.security: DEBUG
 
 # ── Actuator ──────────────────────────────────────────────
 management:
@@ -34,7 +33,7 @@ management:
         include: health, info
   endpoint:
     health:
-      show-details: never          # seguro para produção
+      show-details: always
 
 # ── Rate Limit (Login) ───────────────────────────────────
 rate-limit:

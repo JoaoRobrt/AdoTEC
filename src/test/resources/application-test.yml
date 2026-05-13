@@ -1,5 +1,7 @@
 # Test profile — uses H2 in-memory DB, no .env required
 spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   datasource:
     url: jdbc:h2:mem:adotec_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -21,3 +23,8 @@ spring:
     port: 587
     username: test
     password: test
+
+# ── Rate Limit disabled for tests ─────────────────────────
+rate-limit:
+  login:
+    enabled: false

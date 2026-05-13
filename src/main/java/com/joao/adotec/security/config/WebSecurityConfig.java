@@ -9,6 +9,7 @@ import com.joao.adotec.security.jwt.AuthEntryPointJwt;
 import com.joao.adotec.security.jwt.AuthTokenFilter;
 import com.joao.adotec.security.jwt.CustomAccessDeniedHandler;
 import com.joao.adotec.security.services.UserDetailsServiceImpl;
+import com.joao.adotec.security.ratelimit.LoginRateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +36,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 @Configuration
@@ -47,6 +49,7 @@ public class WebSecurityConfig {
     private final AuthTokenFilter authTokenFilter;
     private final AuthEntryPointJwt unauthorizedHandler;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final Optional<LoginRateLimitFilter> loginRateLimitFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -66,6 +69,11 @@ public class WebSecurityConfig {
                 );
 
         http.authenticationProvider(authenticationProvider());
+
+        // Rate limit filter executes before JWT auth to block abusive requests early
+        loginRateLimitFilter.ifPresent(filter ->
+                http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+        );
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

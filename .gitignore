@@ -1,7 +1,8 @@
 *.class
 .env
 
-
+.vscode
+/docs
 /node_modules
 
 # SSH Keys
