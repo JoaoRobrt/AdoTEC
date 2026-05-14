@@ -5,6 +5,7 @@ import com.joao.adotec.exceptions.domain.DomainException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
@@ -109,5 +110,19 @@ public class GlobalExceptionHandler {
         problem.setProperty("timestamp", Instant.now());
 
         return problem;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public final ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request){
+        logger.warn("Data Integrity violation at {}: {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
+
+    ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+    problem.setTitle("Data Integraty Violation");
+    problem.setDetail("The request conflicts with the current state of resource");
+    problem.setInstance(URI.create(request.getRequestURI()));
+    problem .setProperty("timestamp", Instant.now());
+
+    return problem;
     }
 }
