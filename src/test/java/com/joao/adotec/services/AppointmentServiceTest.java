@@ -49,10 +49,10 @@ class AppointmentServiceTest {
         // Arrange
         User adopter = new User();
         Pet pet = new Pet();
-        TimeSlot timeSlot = new TimeSlot(1L, LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), 2, null);
+        TimeSlot timeSlot = new TimeSlot(1L, LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), 2, 0L, null);
 
         given(appointmentRepository.existsByAdopterAndTimeSlot(adopter, timeSlot)).willReturn(false);
-        given(appointmentRepository.countByTimeSlot(timeSlot)).willReturn(2); // Full capacity
+        given(appointmentRepository.countActiveByTimeSlot(timeSlot)).willReturn(2); // Full capacity
 
         // Act & Assert
         assertThatThrownBy(() -> appointmentService.createAppointment(adopter, pet, timeSlot))
@@ -66,7 +66,7 @@ class AppointmentServiceTest {
         // Arrange
         User adopter = new User();
         Pet pet = new Pet();
-        TimeSlot timeSlot = new TimeSlot(1L, LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), 2, null);
+        TimeSlot timeSlot = new TimeSlot(1L, LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), 2, 0L, null);
 
         given(appointmentRepository.existsByAdopterAndTimeSlot(adopter, timeSlot)).willReturn(true); // Already has appointment
 
@@ -82,10 +82,10 @@ class AppointmentServiceTest {
         // Arrange
         User adopter = new User();
         Pet pet = new Pet();
-        TimeSlot timeSlot = new TimeSlot(1L, LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), 2, null);
+        TimeSlot timeSlot = new TimeSlot(1L, LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), 2, 0L, null);
 
         given(appointmentRepository.existsByAdopterAndTimeSlot(adopter, timeSlot)).willReturn(false);
-        given(appointmentRepository.countByTimeSlot(timeSlot)).willReturn(1); // Not full
+        given(appointmentRepository.countActiveByTimeSlot(timeSlot)).willReturn(1); // Not full
 
         Appointment savedAppointment = new Appointment();
         savedAppointment.setAdopter(adopter);
