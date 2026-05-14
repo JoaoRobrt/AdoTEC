@@ -53,7 +53,8 @@ public class Pet {
     @Column(nullable = false)
     private PetSize size;
 
-    private String photoUrl;
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PetPhoto> photos = new ArrayList<>();
 
     @Column(nullable = false)
     private Boolean isAvailableForAdoption = true;

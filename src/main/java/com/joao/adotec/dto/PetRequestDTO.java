@@ -17,8 +17,6 @@ public record PetRequestDTO(
         Integer ageInMonths,
 
         @NotNull(message = "Pet size is required")
-        PetSize size,
-
-        String photoUrl
+        PetSize size
 ) {
 }

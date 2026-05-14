@@ -62,11 +62,11 @@ class PetControllerSecurityTest {
     }
 
     private PetRequestDTO validPetRequest() {
-        return new PetRequestDTO("Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, null);
+        return new PetRequestDTO("Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM);
     }
 
     private PetResponseDTO samplePetResponse() {
-        return new PetResponseDTO(1L, "Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, null, true, Instant.now());
+        return new PetResponseDTO(1L, "Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, java.util.List.of(), true, Instant.now());
     }
 
     @Test
@@ -162,7 +162,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("POST /pets → 400 when petName is blank")
     void createPet_blankName_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.SMALL, null);
+        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.SMALL);
         mockMvc.perform(post("/pets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -172,7 +172,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("POST /pets → 400 when size is null")
     void createPet_nullSize_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("Rex", "Dog", "desc", 6, null, null);
+        PetRequestDTO invalid = new PetRequestDTO("Rex", "Dog", "desc", 6, null);
         mockMvc.perform(post("/pets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -194,7 +194,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("PUT /pets/{id} → 400 when petName is blank")
     void updatePet_blankName_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.BIG, null);
+        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.BIG);
         mockMvc.perform(put("/pets/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))

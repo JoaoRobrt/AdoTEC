@@ -106,7 +106,17 @@ class PetServiceTest {
         pet.setIsAvailableForAdoption(true);
         pet.setSpecies("Dog");
 
-        com.joao.adotec.dto.PetResponseDTO dto = new com.joao.adotec.dto.PetResponseDTO(pet);
+        com.joao.adotec.dto.PetResponseDTO dto = new com.joao.adotec.dto.PetResponseDTO(
+                pet.getPetId(),
+                pet.getPetName(),
+                pet.getSpecies(),
+                pet.getDescription(),
+                pet.getAgeInMonths(),
+                pet.getSize(),
+                java.util.List.of(),
+                pet.getIsAvailableForAdoption(),
+                pet.getCreatedAt()
+        );
         
         given(petRepository.findById(id)).willReturn(Optional.of(pet));
         given(petMapper.toDTO(pet)).willReturn(dto);

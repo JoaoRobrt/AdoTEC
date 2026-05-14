@@ -1,8 +1,8 @@
 package com.joao.adotec.dto;
 
 import com.joao.adotec.enums.PetSize;
-import com.joao.adotec.models.Pet;
 import java.time.Instant;
+import java.util.List;
 
 public record PetResponseDTO(
         Long petId,
@@ -11,21 +11,8 @@ public record PetResponseDTO(
         String description,
         Integer ageInMonths,
         PetSize size,
-        String photoUrl,
+        List<PetPhotoResponseDTO> photos,
         Boolean isAvailableForAdoption,
         Instant createdAt
 ) {
-    public PetResponseDTO(Pet pet) {
-        this(
-                pet.getPetId(),
-                pet.getPetName(),
-                pet.getSpecies(),
-                pet.getDescription(),
-                pet.getAgeInMonths(),
-                pet.getSize(),
-                pet.getPhotoUrl(),
-                pet.getIsAvailableForAdoption(),
-                pet.getCreatedAt()
-        );
-    }
 }

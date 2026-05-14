@@ -42,3 +42,9 @@ rate-limit:
     capacity: 5
     refill-tokens: 5
     refill-duration: 60
+
+# Cloudinary Configuration
+cloudinary:
+  cloud-name: 
+  api-key: 
+  api-secret: 
