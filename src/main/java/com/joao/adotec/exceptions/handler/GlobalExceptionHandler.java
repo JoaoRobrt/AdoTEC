@@ -114,15 +114,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public final ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request){
+
         logger.warn("Data Integrity violation at {}: {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
 
-    ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
 
-    problem.setTitle("Data Integraty Violation");
-    problem.setDetail("The request conflicts with the current state of resource");
-    problem.setInstance(URI.create(request.getRequestURI()));
-    problem .setProperty("timestamp", Instant.now());
+        problem.setTitle("Data Integraty Violation");
+        problem.setDetail("The request conflicts with the current state of resource");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem .setProperty("timestamp", Instant.now());
 
-    return problem;
+        return problem;
     }
 }
