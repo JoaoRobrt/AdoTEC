@@ -36,7 +36,7 @@ public class AppointmentService {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", petId));
 
-        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
+        TimeSlot timeSlot = timeSlotRepository.findByIdForUpdate(timeSlotId)
                 .orElseThrow(() -> new ResourceNotFoundException("TimeSlot", timeSlotId));
 
         return createAppointment(adopter, pet, timeSlot);
@@ -60,7 +60,7 @@ public class AppointmentService {
             throw new BusinessException("Adopter already has an appointment for this time slot.");
         }
 
-        int currentAppointments = appointmentRepository.countByTimeSlot(timeSlot);
+        int currentAppointments = appointmentRepository.countActiveByTimeSlot(timeSlot);
         if (currentAppointments >= timeSlot.getMaxAppointments()) {
             throw new BusinessException("Time slot has reached its maximum capacity.");
         }

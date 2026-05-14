@@ -1,6 +1,7 @@
 package com.joao.adotec.models;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,6 +35,9 @@ public class TimeSlot {
 
     @Column(nullable = false)
     private Integer maxAppointments;
+
+    @Version
+    private Long version;
 
     @OneToMany(mappedBy = "timeSlot", fetch = FetchType.LAZY)
     private List<Appointment> appointments = new ArrayList<>();

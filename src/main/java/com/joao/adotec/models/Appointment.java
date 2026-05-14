@@ -11,7 +11,16 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "tb_appointments")
+@Table(name = "tb_appointments",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_adopter_timeslot",
+                columnNames = {"adopter_id", "time_slot_id"}
+        ),
+        indexes = {
+                @Index(name = "idx_appt_time_slot", columnList = "time_slot_id"),
+                @Index(name = "idx_appt_adopter_created", columnList = "adopter_id, created_at")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,6 +44,9 @@ public class Appointment {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @Version
+    private Long version;
 
     // -----------------------------------------------------------------------
     // Relationships

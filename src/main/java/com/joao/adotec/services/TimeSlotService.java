@@ -22,10 +22,9 @@ public class TimeSlotService {
      */
     @Transactional(readOnly = true)
     public List<TimeSlotResponseDTO> findAvailableByDate(LocalDate date) {
-        List<TimeSlot> slots = timeSlotRepository.findByDate(date);
+        List<TimeSlot> slots = timeSlotRepository.findAvailableByDate(date);
 
         return slots.stream()
-                .filter(slot -> slot.getAppointments().size() < slot.getMaxAppointments())
                 .map(slot -> new TimeSlotResponseDTO(
                         slot.getTimeSlotId(),
                         slot.getDate(),
@@ -41,10 +40,9 @@ public class TimeSlotService {
      */
     @Transactional(readOnly = true)
     public List<TimeSlotResponseDTO> findAvailableByDateRange(LocalDate startDate, LocalDate endDate) {
-        List<TimeSlot> slots = timeSlotRepository.findByDateBetween(startDate, endDate);
+        List<TimeSlot> slots = timeSlotRepository.findAvailableByDateBetween(startDate, endDate);
 
         return slots.stream()
-                .filter(slot -> slot.getAppointments().size() < slot.getMaxAppointments())
                 .map(slot -> new TimeSlotResponseDTO(
                         slot.getTimeSlotId(),
                         slot.getDate(),
