@@ -112,9 +112,18 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public Appointment getAppointmentById(Long appointmentId) {
-        return appointmentRepository.findById(appointmentId)
+    public Appointment getAppointmentById(Long appointmentId, com.joao.adotec.security.services.UserDetailsImpl userDetails) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
+
+        boolean isAdminOrEmployee = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_EMPLOYEE"));
+
+        if (!isAdminOrEmployee && !appointment.getAdopter().getUserId().equals(userDetails.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to view this appointment.");
+        }
+
+        return appointment;
     }
 
     @Transactional(readOnly = true)

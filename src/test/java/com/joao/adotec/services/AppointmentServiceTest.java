@@ -253,10 +253,18 @@ class AppointmentServiceTest {
         Long appointmentId = 1L;
         Appointment appointment = new Appointment();
         appointment.setAppointmentId(appointmentId);
+        
+        User adopter = new User();
+        adopter.setUserId(10L);
+        appointment.setAdopter(adopter);
+
+        com.joao.adotec.security.services.UserDetailsImpl userDetails = new com.joao.adotec.security.services.UserDetailsImpl(
+                10L, "User", "user@test.com", "pass", true,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADOPTER")));
 
         given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.of(appointment));
 
-        Appointment result = appointmentService.getAppointmentById(appointmentId);
+        Appointment result = appointmentService.getAppointmentById(appointmentId, userDetails);
 
         assertThat(result).isNotNull();
         assertThat(result.getAppointmentId()).isEqualTo(appointmentId);
@@ -266,10 +274,13 @@ class AppointmentServiceTest {
     @DisplayName("getAppointmentById → Should throw ResourceNotFoundException when not found")
     void getAppointmentById_whenNotFound_shouldThrowResourceNotFoundException() {
         Long appointmentId = 999L;
+        com.joao.adotec.security.services.UserDetailsImpl userDetails = new com.joao.adotec.security.services.UserDetailsImpl(
+                10L, "User", "user@test.com", "pass", true,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADOPTER")));
 
         given(appointmentRepository.findById(appointmentId)).willReturn(java.util.Optional.empty());
 
-        assertThatThrownBy(() -> appointmentService.getAppointmentById(appointmentId))
+        assertThatThrownBy(() -> appointmentService.getAppointmentById(appointmentId, userDetails))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Appointment")
                 .hasMessageContaining("999");

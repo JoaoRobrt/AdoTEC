@@ -147,9 +147,11 @@ class AppointmentControllerTest {
     @Test
     @DisplayName("GET /appointments/{id} → 200 OK when appointment exists")
     void getAppointmentById_exists_returns200() throws Exception {
-        given(appointmentService.getAppointmentById(eq(1L))).willReturn(new Appointment());
+        UsernamePasswordAuthenticationToken auth = createAuthToken(1L, "ADMIN");
+        given(appointmentService.getAppointmentById(eq(1L), any())).willReturn(new Appointment());
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments/1"))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments/1")
+                .principal(auth))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Appointment retrieved successfully"));
     }
@@ -157,10 +159,12 @@ class AppointmentControllerTest {
     @Test
     @DisplayName("GET /appointments/{id} → 404 when appointment not found")
     void getAppointmentById_notFound_returns404() throws Exception {
-        given(appointmentService.getAppointmentById(eq(999L)))
+        UsernamePasswordAuthenticationToken auth = createAuthToken(1L, "ADMIN");
+        given(appointmentService.getAppointmentById(eq(999L), any()))
                 .willThrow(new com.joao.adotec.exceptions.domain.ResourceNotFoundException("Appointment", 999L));
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments/999"))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments/999")
+                .principal(auth))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value("Appointment not found with id: 999"));
     }
