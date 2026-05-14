@@ -20,7 +20,7 @@ public class EmployeeController {
     private final UserService userService;
 
     @GetMapping
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getEmployees() {
         List<UserResponse> employees = userService.findEmployees();
         return ResponseEntity.ok(ApiResponse.success("Employees retrieved successfully", employees));
