@@ -24,4 +24,7 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
             @org.springframework.data.repository.query.Param("size") com.joao.adotec.enums.PetSize size, 
             @org.springframework.data.repository.query.Param("name") String name, 
             Pageable pageable);
+
+    /** Top 4 available+active pets ordered by newest first — used for home page highlights. */
+    java.util.List<Pet> findTop4ByIsAvailableForAdoptionTrueAndIsActiveTrueOrderByCreatedAtDesc();
 }

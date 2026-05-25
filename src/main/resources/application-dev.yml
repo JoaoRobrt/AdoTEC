@@ -48,3 +48,9 @@ cloudinary:
   cloud-name: 
   api-key: 
   api-secret: 
+
+# ── Cache (Redis) ────────────────────────────────────────
+cache:
+  pets:
+    destaque:
+      ttl-minutes: 10

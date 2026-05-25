@@ -7,10 +7,14 @@ import com.joao.adotec.mappers.PetMapper;
 import com.joao.adotec.models.Pet;
 import com.joao.adotec.repositories.PetRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,20 @@ public class PetService {
     public Page<PetResponseDTO> getAllAvailablePets(com.joao.adotec.enums.PetSize size, String name, Pageable pageable) {
         // Filter: isAvailableForAdoption=true AND isActive=true (not soft-deleted), plus size and name
         return petRepository.findAvailablePetsWithFilters(size, name, pageable).map(petMapper::toDTO);
+    }
+
+    /**
+     * Retorna os 4 pets mais recentes disponíveis para adoção (destaque da home).
+     * Resultado cacheado no Redis usando um Wrapper para preservar a tipagem JSON.
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "petsDestaque", key = "'lista'")
+    public com.joao.adotec.dto.commons.PetsDestaqueCacheWrapper getDestaquePets() {
+        List<PetResponseDTO> list = petRepository.findTop4ByIsAvailableForAdoptionTrueAndIsActiveTrueOrderByCreatedAtDesc()
+                .stream()
+                .map(petMapper::toDTO)
+                .toList();
+        return new com.joao.adotec.dto.commons.PetsDestaqueCacheWrapper(list);
     }
 
     @Transactional(readOnly = true)
@@ -38,6 +56,7 @@ public class PetService {
     }
 
     @Transactional
+    @CacheEvict(value = "petsDestaque", allEntries = true)
     public PetResponseDTO createPet(PetRequestDTO petDto) {
         Pet pet = petMapper.toEntity(petDto);
         pet.setIsAvailableForAdoption(true);
@@ -47,6 +66,7 @@ public class PetService {
     }
 
     @Transactional
+    @CacheEvict(value = "petsDestaque", allEntries = true)
     public PetResponseDTO updatePet(Long id, PetRequestDTO petDto) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", id));
@@ -64,6 +84,7 @@ public class PetService {
      * appear in any public listing or be bookable for new appointments.
      */
     @Transactional
+    @CacheEvict(value = "petsDestaque", allEntries = true)
     public void deletePet(Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", id));
@@ -73,3 +94,4 @@ public class PetService {
         petRepository.save(pet);
     }
 }
+

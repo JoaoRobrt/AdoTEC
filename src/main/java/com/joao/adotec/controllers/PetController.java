@@ -44,6 +44,16 @@ public class PetController {
         return ResponseEntity.ok(ApiResponse.success("Pets retrieved successfully", pageResponse));
     }
 
+    @Operation(summary = "Get featured pets", description = "Returns the 4 most recently added available pets for the home page highlights. Cached in Redis.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved featured pets")
+    })
+    @GetMapping("/destaque")
+    public ResponseEntity<ApiResponse<java.util.List<PetResponseDTO>>> getDestaquePets() {
+        java.util.List<PetResponseDTO> pets = petService.getDestaquePets().getPets();
+        return ResponseEntity.ok(ApiResponse.success("Featured pets retrieved successfully", pets));
+    }
+
     @Operation(summary = "Get pet by ID", description = "Retrieves detailed information about a specific pet by its ID. Publicly accessible.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved the pet"),
