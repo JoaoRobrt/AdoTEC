@@ -1,20 +1,22 @@
 package com.joao.adotec.services;
 
+import com.joao.adotec.config.VisitScheduleProperties;
 import com.joao.adotec.dto.TimeSlotResponseDTO;
-import com.joao.adotec.models.TimeSlot;
-import com.joao.adotec.repositories.TimeSlotRepository;
+import com.joao.adotec.repositories.AppointmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class TimeSlotService {
 
-    private final TimeSlotRepository timeSlotRepository;
+    private final VisitScheduleProperties scheduleProperties;
+    private final AppointmentRepository appointmentRepository;
 
     /**
      * Returns time slots for a given date that still have capacity
@@ -22,16 +24,33 @@ public class TimeSlotService {
      */
     @Transactional(readOnly = true)
     public List<TimeSlotResponseDTO> findAvailableByDate(LocalDate date) {
-        List<TimeSlot> slots = timeSlotRepository.findAvailableByDate(date);
+        if (date.isBefore(LocalDate.now())) {
+            return List.of();
+        }
 
-        return slots.stream()
-                .map(slot -> new TimeSlotResponseDTO(
-                        slot.getTimeSlotId(),
-                        slot.getDate(),
-                        slot.getStartTime(),
-                        slot.getEndTime()
-                ))
-                .toList();
+        if (!scheduleProperties.getDays().contains(date.getDayOfWeek())) {
+            return List.of();
+        }
+
+        List<TimeSlotResponseDTO> availableSlots = new ArrayList<>();
+
+        for (VisitScheduleProperties.Slot slot : scheduleProperties.getSlots()) {
+            int currentAppointments = appointmentRepository.countActiveByDateAndStartTime(date, slot.getStart());
+
+            if (currentAppointments < slot.getCapacity()) {
+                String slotId = date.toString() + "_" + slot.getStart().toString();
+                int vagasRestantes = slot.getCapacity() - currentAppointments;
+                availableSlots.add(new TimeSlotResponseDTO(
+                        slotId,
+                        date,
+                        slot.getStart(),
+                        slot.getEnd(),
+                        vagasRestantes
+                ));
+            }
+        }
+
+        return availableSlots;
     }
 
     /**
@@ -40,15 +59,14 @@ public class TimeSlotService {
      */
     @Transactional(readOnly = true)
     public List<TimeSlotResponseDTO> findAvailableByDateRange(LocalDate startDate, LocalDate endDate) {
-        List<TimeSlot> slots = timeSlotRepository.findAvailableByDateBetween(startDate, endDate);
+        List<TimeSlotResponseDTO> allSlots = new ArrayList<>();
+        LocalDate currentDate = startDate;
 
-        return slots.stream()
-                .map(slot -> new TimeSlotResponseDTO(
-                        slot.getTimeSlotId(),
-                        slot.getDate(),
-                        slot.getStartTime(),
-                        slot.getEndTime()
-                ))
-                .toList();
+        while (!currentDate.isAfter(endDate)) {
+            allSlots.addAll(findAvailableByDate(currentDate));
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return allSlots;
     }
 }

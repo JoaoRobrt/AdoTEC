@@ -1,7 +1,6 @@
 package com.joao.adotec.repositories;
 
 import com.joao.adotec.models.Appointment;
-import com.joao.adotec.models.TimeSlot;
 import com.joao.adotec.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,17 +13,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.timeSlot = :slot AND a.status <> 'CANCELED'")
-    int countActiveByTimeSlot(@Param("slot") TimeSlot slot);
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.appointmentDate = :date AND a.startTime = :startTime AND a.status <> 'CANCELED'")
+    int countActiveByDateAndStartTime(@Param("date") java.time.LocalDate date, @Param("startTime") java.time.LocalTime startTime);
 
-    boolean existsByAdopterAndTimeSlot(User adopter, TimeSlot timeSlot);
+    boolean existsByAdopterAndAppointmentDateAndStartTime(User adopter, java.time.LocalDate appointmentDate, java.time.LocalTime startTime);
 
-    @EntityGraph(attributePaths = {"adopter", "pet", "timeSlot"})
+    @EntityGraph(attributePaths = {"adopter", "pet"})
     Page<Appointment> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"adopter", "pet", "timeSlot"})
+    @EntityGraph(attributePaths = {"adopter", "pet"})
     Page<Appointment> findByAdopterOrderByCreatedAtDesc(User adopter, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"adopter", "pet", "timeSlot"})
+    @EntityGraph(attributePaths = {"adopter", "pet"})
     Page<Appointment> findByEmployeeOrderByCreatedAtDesc(User employee, Pageable pageable);
 }

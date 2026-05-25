@@ -68,10 +68,10 @@ class AppointmentControllerTest {
     @Test
     @DisplayName("POST /appointments → 201 Created (Adopter successfully accesses endpoint)")
     void createAppointment_withAdopter_returns201() throws Exception {
-        AppointmentRequestDTO request = new AppointmentRequestDTO(2L, 3L);
+        AppointmentRequestDTO request = new AppointmentRequestDTO(2L, "2026-05-26_09:00");
         UsernamePasswordAuthenticationToken auth = createAuthToken(1L, "ADOPTER");
 
-        given(appointmentService.createAppointment(eq(1L), eq(2L), eq(3L))).willReturn(new Appointment());
+        given(appointmentService.createAppointment(eq(1L), eq(2L), eq("2026-05-26_09:00"))).willReturn(new Appointment());
 
         mockMvc.perform(post("/appointments")
                 .principal(auth)

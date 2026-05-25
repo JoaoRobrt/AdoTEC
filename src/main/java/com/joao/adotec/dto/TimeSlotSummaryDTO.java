@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record TimeSlotSummaryDTO(
-        Long timeSlotId,
+        String timeSlotId,
         LocalDate date,
         LocalTime startTime,
         LocalTime endTime

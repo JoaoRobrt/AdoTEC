@@ -53,8 +53,8 @@ class TimeSlotControllerTest {
         LocalDate date = LocalDate.of(2026, 6, 15);
 
         List<TimeSlotResponseDTO> mockSlots = List.of(
-                new TimeSlotResponseDTO(1L, date, LocalTime.of(9, 0), LocalTime.of(10, 0)),
-                new TimeSlotResponseDTO(2L, date, LocalTime.of(14, 0), LocalTime.of(15, 0))
+                new TimeSlotResponseDTO("2026-06-15_09:00", date, LocalTime.of(9, 0), LocalTime.of(10, 0), 2),
+                new TimeSlotResponseDTO("2026-06-15_14:00", date, LocalTime.of(14, 0), LocalTime.of(15, 0), 2)
         );
 
         given(timeSlotService.findAvailableByDate(date)).willReturn(mockSlots);
@@ -64,9 +64,9 @@ class TimeSlotControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Time slots retrieved successfully"))
                 .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].slotId").value("2026-06-15_09:00"))
                 .andExpect(jsonPath("$.data[0].startTime").value("09:00:00"))
-                .andExpect(jsonPath("$.data[1].id").value(2))
+                .andExpect(jsonPath("$.data[1].slotId").value("2026-06-15_14:00"))
                 .andExpect(jsonPath("$.data[1].startTime").value("14:00:00"));
     }
 
@@ -98,10 +98,11 @@ class TimeSlotControllerTest {
         LocalDate endDate = LocalDate.of(2026, 6, 30); // Busca de um mês inteiro
         
         TimeSlotResponseDTO dummyResponse = new TimeSlotResponseDTO(
-                2L, 
+                "2026-06-15_14:00", 
                 LocalDate.of(2026, 6, 15), 
                 LocalTime.of(14, 0), 
-                LocalTime.of(15, 0)
+                LocalTime.of(15, 0),
+                2
         );
         
         // Agora o Service terá um método focado em range de datas
@@ -115,7 +116,7 @@ class TimeSlotControllerTest {
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].id").value(2L))
+                .andExpect(jsonPath("$.data[0].slotId").value("2026-06-15_14:00"))
                 .andExpect(jsonPath("$.data[0].date").value("2026-06-15"));
     }
 }

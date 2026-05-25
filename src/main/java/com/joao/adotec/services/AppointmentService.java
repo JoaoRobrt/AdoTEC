@@ -5,11 +5,14 @@ import com.joao.adotec.exceptions.domain.BusinessException;
 import com.joao.adotec.exceptions.domain.ResourceNotFoundException;
 import com.joao.adotec.models.Appointment;
 import com.joao.adotec.models.Pet;
-import com.joao.adotec.models.TimeSlot;
+import com.joao.adotec.config.VisitScheduleProperties;
+import com.joao.adotec.exceptions.domain.DuplicateAppointmentException;
+import com.joao.adotec.exceptions.domain.SlotUnavailableException;
+import com.joao.adotec.models.Appointment;
+import com.joao.adotec.models.Pet;
 import com.joao.adotec.models.User;
 import com.joao.adotec.repositories.AppointmentRepository;
 import com.joao.adotec.repositories.PetRepository;
-import com.joao.adotec.repositories.TimeSlotRepository;
 import com.joao.adotec.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
@@ -26,49 +30,54 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
     private final PetRepository petRepository;
-    private final TimeSlotRepository timeSlotRepository;
+    private final VisitScheduleProperties scheduleProperties;
 
     @Transactional
-    public Appointment createAppointment(Long adopterId, Long petId, Long timeSlotId) {
+    public Appointment createAppointment(Long adopterId, Long petId, String timeSlotId) {
         User adopter = userRepository.findById(adopterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", adopterId));
 
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", petId));
 
-        TimeSlot timeSlot = timeSlotRepository.findByIdForUpdate(timeSlotId)
-                .orElseThrow(() -> new ResourceNotFoundException("TimeSlot", timeSlotId));
+        String[] parts = timeSlotId.split("_");
+        if (parts.length != 2) {
+            throw new BusinessException("Formato de timeSlotId inválido. Use YYYY-MM-DD_HH:MM");
+        }
+        LocalDate date = LocalDate.parse(parts[0]);
+        LocalTime startTime = LocalTime.parse(parts[1]);
 
-        return createAppointment(adopter, pet, timeSlot);
+        return createAppointment(adopter, pet, date, startTime);
     }
 
     @Transactional
-    public Appointment createAppointment(User adopter, Pet pet, TimeSlot timeSlot) {
+    public Appointment createAppointment(User adopter, Pet pet, LocalDate appointmentDate, LocalTime startTime) {
 
-        if (timeSlot.getDate().isBefore(LocalDate.now())) {
+        if (appointmentDate.isBefore(LocalDate.now())) {
             throw new BusinessException(
-                    "Cannot schedule an appointment for a past date: " + timeSlot.getDate());
+                    "Cannot schedule an appointment for a past date: " + appointmentDate);
         }
 
-        if (!timeSlot.getEndTime().isAfter(timeSlot.getStartTime())) {
-            throw new BusinessException(
-                    "TimeSlot is invalid: endTime must be after startTime (got "
-                            + timeSlot.getStartTime() + " → " + timeSlot.getEndTime() + ").");
+        VisitScheduleProperties.Slot configuredSlot = scheduleProperties.getSlots().stream()
+                .filter(s -> s.getStart().equals(startTime))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("Horário inválido ou não configurado."));
+
+        if (appointmentRepository.existsByAdopterAndAppointmentDateAndStartTime(adopter, appointmentDate, startTime)) {
+            throw new DuplicateAppointmentException();
         }
 
-        if (appointmentRepository.existsByAdopterAndTimeSlot(adopter, timeSlot)) {
-            throw new BusinessException("Adopter already has an appointment for this time slot.");
-        }
-
-        int currentAppointments = appointmentRepository.countActiveByTimeSlot(timeSlot);
-        if (currentAppointments >= timeSlot.getMaxAppointments()) {
-            throw new BusinessException("Time slot has reached its maximum capacity.");
+        int currentAppointments = appointmentRepository.countActiveByDateAndStartTime(appointmentDate, startTime);
+        if (currentAppointments >= configuredSlot.getCapacity()) {
+            throw new SlotUnavailableException();
         }
 
         Appointment appointment = new Appointment();
         appointment.setAdopter(adopter);
         appointment.setPet(pet);
-        appointment.setTimeSlot(timeSlot);
+        appointment.setAppointmentDate(appointmentDate);
+        appointment.setStartTime(startTime);
+        appointment.setEndTime(configuredSlot.getEnd());
         appointment.setStatus(AppointmentStatus.PENDING);
 
         return appointmentRepository.save(appointment);

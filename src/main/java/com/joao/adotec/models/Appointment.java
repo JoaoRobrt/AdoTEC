@@ -9,15 +9,17 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "tb_appointments",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_adopter_timeslot",
-                columnNames = {"adopter_id", "time_slot_id"}
+                name = "uk_adopter_datetime",
+                columnNames = {"adopter_id", "appointment_date", "start_time"}
         ),
         indexes = {
-                @Index(name = "idx_appt_time_slot", columnList = "time_slot_id"),
+                @Index(name = "idx_appt_date_time", columnList = "appointment_date, start_time"),
                 @Index(name = "idx_appt_adopter_created", columnList = "adopter_id, created_at")
         }
 )
@@ -63,7 +65,12 @@ public class Appointment {
     @JoinColumn(name = "pet_id", nullable = false)
     private Pet pet;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "time_slot_id", nullable = false)
-    private TimeSlot timeSlot;
+    @Column(name = "appointment_date", nullable = false)
+    private LocalDate appointmentDate;
+
+    @Column(name = "start_time", nullable = false)
+    private LocalTime startTime;
+
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime;
 }

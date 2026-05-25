@@ -3,3 +3,20 @@ spring:
     import: optional:file:.env[.properties]
   profiles:
     active: dev
+
+visits:
+  schedule:
+    days: MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY
+    slots:
+      - start: "09:00"
+        end: "10:00"
+        capacity: 2
+      - start: "10:00"
+        end: "11:00"
+        capacity: 2
+      - start: "14:00"
+        end: "15:00"
+        capacity: 2
+      - start: "15:00"
+        end: "16:00"
+        capacity: 2

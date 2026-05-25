@@ -7,9 +7,10 @@ import java.time.LocalTime;
  * DTO representing a time slot available for scheduling an adoption visit.
  */
 public record TimeSlotResponseDTO(
-        Long id,
+        String slotId,
         LocalDate date,
         LocalTime startTime,
-        LocalTime endTime
+        LocalTime endTime,
+        int vagasRestantes
 ) {
 }
