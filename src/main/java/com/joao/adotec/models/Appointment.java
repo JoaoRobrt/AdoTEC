@@ -48,34 +48,21 @@ public class Appointment {
     @Version
     private Long version;
 
-    // -----------------------------------------------------------------------
-    // Relationships
-    // -----------------------------------------------------------------------
 
-    /**
-     * The adopter who scheduled the visit. Always required.
-     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "adopter_id", nullable = false)
     private User adopter;
 
-    /**
-     * The employee assigned to accompany the visit. Nullable (assigned later by admin).
-     */
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
     private User employee;
 
-    /**
-     * The pet the adopter wants to visit.
-     */
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "pet_id", nullable = false)
     private Pet pet;
 
-    /**
-     * The time slot chosen for the visit.
-     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "time_slot_id", nullable = false)
     private TimeSlot timeSlot;

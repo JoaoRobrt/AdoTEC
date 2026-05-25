@@ -38,18 +38,16 @@ public class TimeSlotController {
 
         List<TimeSlotResponseDTO> availableSlots;
 
-        // Regra 1: Busca por Range (Semana/Mês)
         if (startDate != null && endDate != null) {
             if (startDate.isAfter(endDate)) {
                 throw new IllegalArgumentException("startDate não pode ser posterior a endDate");
             }
             availableSlots = timeSlotService.findAvailableByDateRange(startDate, endDate);
         }
-        // Regra 2: Busca por Dia Específico
+
         else if (date != null) {
             availableSlots = timeSlotService.findAvailableByDate(date);
         }
-        // Regra 3: Parâmetros inválidos
         else {
             throw new IllegalArgumentException("Você deve informar 'date' ou a combinação 'startDate' e 'endDate'");
         }
