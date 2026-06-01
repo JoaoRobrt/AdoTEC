@@ -115,14 +115,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public final ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request){
 
-        logger.warn("Data Integrity violation at {}: {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
+        String rootCause = ex.getMostSpecificCause().getMessage();
+        logger.warn("Data Integrity violation at {}: {}", request.getRequestURI(), rootCause);
 
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
 
-        problem.setTitle("Data Integraty Violation");
-        problem.setDetail("The request conflicts with the current state of resource");
+        problem.setTitle("Data Integrity Violation");
+
+        // Provide a user-friendly message based on the constraint violated
+        String detail;
+        if (rootCause != null && rootCause.contains("uk_adopter_datetime")) {
+            detail = "Você já possui um agendamento neste horário.";
+        } else if (rootCause != null && rootCause.contains("Duplicate entry")) {
+            detail = "Este registro já existe no sistema.";
+        } else {
+            detail = "A operação conflita com o estado atual dos dados.";
+        }
+
+        problem.setDetail(detail);
         problem.setInstance(URI.create(request.getRequestURI()));
-        problem .setProperty("timestamp", Instant.now());
+        problem.setProperty("timestamp", Instant.now());
 
         return problem;
     }

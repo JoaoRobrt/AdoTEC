@@ -16,7 +16,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT COUNT(a) FROM Appointment a WHERE a.appointmentDate = :date AND a.startTime = :startTime AND a.status <> 'CANCELED'")
     int countActiveByDateAndStartTime(@Param("date") java.time.LocalDate date, @Param("startTime") java.time.LocalTime startTime);
 
-    boolean existsByAdopterAndAppointmentDateAndStartTime(User adopter, java.time.LocalDate appointmentDate, java.time.LocalTime startTime);
+    @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Appointment a WHERE a.adopter = :adopter AND a.appointmentDate = :date AND a.startTime = :startTime AND a.status <> 'CANCELED'")
+    boolean existsByAdopterAndAppointmentDateAndStartTime(@Param("adopter") User adopter, @Param("date") java.time.LocalDate date, @Param("startTime") java.time.LocalTime startTime);
 
     @EntityGraph(attributePaths = {"adopter", "pet"})
     Page<Appointment> findAll(Pageable pageable);
