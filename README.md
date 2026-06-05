@@ -3,7 +3,7 @@
 # 🐾 AdoTEC
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge&logo=github-actions)](https://github.com/JoaoRobrt/AdoTEC)
-[![Version](https://img.shields.io/badge/version-0.0.1--SNAPSHOT-blue?style=for-the-badge)](https://github.com/JoaoRobrt/AdoTEC)
+[![Version](https://img.shields.io/badge/version-0.2.0--SNAPSHOT-blue?style=for-the-badge)](https://github.com/JoaoRobrt/AdoTEC)
 [![License](https://img.shields.io/badge/license-%E2%9A%A0%EF%B8%8F%20preencher-yellow?style=for-the-badge)](https://github.com/JoaoRobrt/AdoTEC)
 [![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.4-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
@@ -34,11 +34,11 @@ Conecta adotantes a animais disponíveis para adoção, gerenciando todo o fluxo
 
 **AdoTEC** é uma API REST desenvolvida com **Spring Boot 4** que centraliza o processo de adoção de animais de abrigos. A plataforma resolve os principais pontos de atrito nesse processo:
 
-- **Para adotantes**: listagem de pets disponíveis com filtros, agendamento de visitas em horários pré-definidos e acompanhamento do status de cada consulta.
+- **Para adotantes**: listagem de pets disponíveis com filtros avançados (porte, espécie, faixa de idade, sexo), ordenação, agendamento de visitas em horários pré-definidos e acompanhamento do status de cada consulta.
 - **Para funcionários**: gerenciamento do cadastro de animais, upload de fotos via Cloudinary e registro do resultado final de cada visita.
-- **Para administradores**: controle total sobre agendamentos, atribuição de funcionários às visitas e visualização consolidada de toda a operação.
+- **Para administradores**: controle total sobre agendamentos (com filtros por status, funcionário e não atribuídos), atribuição de funcionários às visitas, painel de métricas operacionais (dashboard), gestão de funcionários (CRUD) e visualização consolidada de toda a operação.
 
-A autenticação é baseada em **JWT (cookie HttpOnly)** e o acesso a cada recurso é controlado por papéis (`ROLE_ADMIN`, `ROLE_EMPLOYEE`, `ROLE_ADOPTER`). O endpoint de login é protegido contra ataques de força bruta com **rate limiting distribuído via Bucket4j + Redis**.
+A autenticação é baseada em **JWT (cookie HttpOnly)** e o acesso a cada recurso é controlado por papéis (`ROLE_ADMIN`, `ROLE_EMPLOYEE`, `ROLE_ADOPTER`). O endpoint de login é protegido contra ataques de força bruta com **rate limiting distribuído via Bucket4j + Redis**. O cache de pets em destaque é gerenciado com **Redis + Jackson 3.x**.
 
 ---
 
@@ -50,8 +50,15 @@ A autenticação é baseada em **JWT (cookie HttpOnly)** e o acesso a cada recur
 - `GET /auth/me` — Recupera os dados do usuário autenticado
 
 ### 🐶 Pets (`/pets`)
-- `GET /pets` — Listagem paginada de pets disponíveis para adoção com filtros por nome e porte (`SMALL`, `MEDIUM`, `LARGE`)
+- `GET /pets` — Listagem paginada de pets disponíveis para adoção com filtros avançados:
+  - `petSize` — Porte (`SMALL`, `MEDIUM`, `BIG`)
+  - `species` — Espécie (ex: `Cachorro`, `Gato`, `Coelho`)
+  - `minAge` / `maxAge` — Faixa de idade em meses
+  - `gender` — Sexo (`MALE`, `FEMALE`)
+  - `name` — Busca por nome (parcial, case-insensitive)
+  - `sort` — Ordenação (ex: `createdAt,desc`, `petName,asc`, `ageInMonths,asc`)
 - `GET /pets/{id}` — Detalhes de um pet específico
+- `GET /pets/featured` — Pets em destaque para a página inicial (com cache Redis)
 - `POST /pets` — Cadastro de novo pet _(ADMIN / EMPLOYEE)_
 - `PUT /pets/{id}` — Atualização dos dados de um pet _(ADMIN / EMPLOYEE)_
 - `DELETE /pets/{id}` — Remoção lógica (soft-delete) de um pet _(ADMIN / EMPLOYEE)_
@@ -64,12 +71,26 @@ A autenticação é baseada em **JWT (cookie HttpOnly)** e o acesso a cada recur
 
 ### 📅 Agendamentos (`/appointments`)
 - `POST /appointments` — Agendamento de visita por um adotante _(ADOPTER)_
-- `GET /appointments` — Listagem paginada de todos os agendamentos _(ADMIN)_
+- `GET /appointments` — Listagem paginada de todos os agendamentos com filtros _(ADMIN)_:
+  - `status` — Filtro por status (`PENDING`, `CONFIRMED`, `COMPLETED`, `CANCELED`)
+  - `employeeId` — Filtro por funcionário atribuído
+  - `unassigned` — Exibir apenas agendamentos sem funcionário atribuído
+  - `showCanceled` — Incluir/excluir cancelados (padrão: `true`)
 - `GET /appointments/{id}` — Detalhes de um agendamento específico _(ADMIN / EMPLOYEE / dono do agendamento)_
-- `GET /appointments/me` — Agendamentos do usuário logado _(ADOPTER / EMPLOYEE)_
+- `GET /appointments/me` — Agendamentos do usuário logado com filtros por status _(ADOPTER / EMPLOYEE)_
 - `PATCH /appointments/{id}/assign/{employeeId}` — Atribui um funcionário ao agendamento _(ADMIN)_
 - `PATCH /appointments/{id}/result` — Registra o resultado da visita (`APPROVED` ou `REJECTED`) _(ADMIN / EMPLOYEE)_
 - `PATCH /appointments/{id}/cancel` — Cancela um agendamento _(ADOPTER dono)_
+
+### 📊 Dashboard (`/dashboard`)
+- `GET /dashboard/unassigned-appointments` — Agendamentos pendentes de atribuição, paginados _(ADMIN)_
+
+### 👥 Funcionários (`/employees`)
+- `GET /employees` — Listagem de todos os funcionários _(ADMIN)_
+- `GET /employees/{id}` — Detalhes de um funcionário _(ADMIN)_
+- `POST /employees` — Cadastro de novo funcionário ou administrador _(ADMIN)_
+- `PUT /employees/{id}` — Atualização de nome e e-mail _(ADMIN)_
+- `PATCH /employees/{id}/toggle-active` — Ativa/desativa um funcionário (soft-delete) _(ADMIN)_
 
 ### 🕐 Horários Disponíveis (`/timeslots`)
 - `GET /timeslots?date=YYYY-MM-DD` — Horários disponíveis para uma data específica
@@ -85,12 +106,12 @@ A autenticação é baseada em **JWT (cookie HttpOnly)** e o acesso a cada recur
 Antes de instalar e executar o projeto, certifique-se de que as seguintes dependências estão instaladas e configuradas:
 
 | Ferramenta      | Versão mínima | Observações                                        |
-|-----------------|---------------|----------------------------------------------------|
+|-----------------|---------------|-----------------------------------------------------|
 | **JDK**         | 21            | Recomendado: Eclipse Temurin 21 ou OpenJDK 21      |
 | **Maven**       | 3.9+          | Ou use o wrapper `./mvnw` incluso no projeto       |
 | **MySQL**       | 8.0+          | Banco de dados principal da aplicação              |
-| **Redis**       | 7.0+          | Necessário para o rate limiting distribuído        |
-| **Git**         | 2.x           | Para clonar o repositório                         |
+| **Redis**       | 7.0+          | Necessário para rate limiting e cache de pets      |
+| **Git**         | 2.x           | Para clonar o repositório                          |
 
 > **Conta Cloudinary**: Para o módulo de upload de fotos funcionar, é necessária uma conta gratuita no [Cloudinary](https://cloudinary.com/). As credenciais são configuradas via variáveis de ambiente.
 
@@ -152,6 +173,8 @@ O Spring Boot Devtools está configurado como dependência de runtime — altera
 
 A API estará disponível em: `http://localhost:8080`
 
+> **Dados de demonstração**: No perfil `dev`, o `DevDataSeeder` cria automaticamente usuários padrão (admin, funcionário, adotante) e 12 pets de demonstração com fotos, permitindo testar a aplicação imediatamente.
+
 ### 6. Executar em produção (JAR)
 
 ```bash
@@ -159,7 +182,7 @@ A API estará disponível em: `http://localhost:8080`
 ./mvnw clean package -DskipTests
 
 # Executar o JAR com o perfil de produção
-java -jar target/AdoTEC-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+java -jar target/AdoTEC-0.2.0-SNAPSHOT.jar --spring.profiles.active=prod
 ```
 
 ---
@@ -184,15 +207,6 @@ curl -c cookies.txt -X POST http://localhost:8080/auth/login \
   }'
 ```
 
-**Body da requisição:**
-
-```json
-{
-  "email": "adotante@email.com",
-  "password": "minhasenha123"
-}
-```
-
 **Resposta esperada (`200 OK`):**
 
 ```json
@@ -212,12 +226,12 @@ curl -c cookies.txt -X POST http://localhost:8080/auth/login \
 
 ---
 
-### Exemplo 2 — Listar pets disponíveis para adoção (com filtros)
+### Exemplo 2 — Listar pets com filtros avançados
 
-**`GET /pets?size=SMALL&name=rex&page=0&size=10`**
+**`GET /pets?petSize=SMALL&species=Cachorro&gender=FEMALE&minAge=0&maxAge=12&sort=petName,asc`**
 
 ```bash
-curl -X GET "http://localhost:8080/pets?name=rex&size=SMALL&page=0" \
+curl -X GET "http://localhost:8080/pets?petSize=SMALL&species=Cachorro&gender=FEMALE&minAge=0&maxAge=12&sort=petName,asc" \
   -H "Accept: application/json"
 ```
 
@@ -230,25 +244,27 @@ curl -X GET "http://localhost:8080/pets?name=rex&size=SMALL&page=0" \
   "data": {
     "content": [
       {
-        "petId": 5,
-        "petName": "Rex",
+        "petId": 4,
+        "petName": "Mel",
         "species": "Cachorro",
-        "description": "Dócil e brincalhão, ótimo com crianças.",
-        "ageInMonths": 18,
+        "description": "Mel é uma filhotinha meiga e sapeca. Perfeita para apartamento.",
+        "ageInMonths": 8,
         "size": "SMALL",
+        "gender": "FEMALE",
         "isAvailableForAdoption": true,
         "photos": [
           {
             "photoId": 12,
-            "url": "https://res.cloudinary.com/demo/image/upload/v1/adotec/rex_main.jpg",
+            "url": "https://images.unsplash.com/photo-1560807707-8cc77767d783?w=600&h=600&fit=crop",
             "isPrimary": true
           }
-        ]
+        ],
+        "createdAt": "2026-06-01T10:00:00Z"
       }
     ],
-    "meta": {
+    "pagination": {
       "page": 0,
-      "size": 10,
+      "size": 12,
       "totalElements": 1,
       "totalPages": 1,
       "last": true
@@ -272,15 +288,6 @@ curl -b cookies.txt -X POST http://localhost:8080/appointments \
   }'
 ```
 
-**Body da requisição:**
-
-```json
-{
-  "petId": 5,
-  "timeSlotId": 3
-}
-```
-
 **Resposta esperada (`201 Created`):**
 
 ```json
@@ -290,21 +297,14 @@ curl -b cookies.txt -X POST http://localhost:8080/appointments \
   "data": {
     "appointmentId": 42,
     "status": "PENDING",
-    "pet": {
-      "petId": 5,
-      "petName": "Rex"
-    },
+    "petName": "Rex",
+    "adopterName": "João Silva",
     "timeSlot": {
-      "timeSlotId": 3,
       "date": "2026-06-10",
       "startTime": "09:00:00",
       "endTime": "10:00:00"
     },
-    "adopter": {
-      "id": 1,
-      "name": "João Silva"
-    },
-    "employee": null,
+    "employeeName": null,
     "adoptionResult": null,
     "notes": null,
     "createdAt": "2026-05-25T16:00:00Z"
@@ -365,15 +365,6 @@ curl -b cookies.txt -X PATCH http://localhost:8080/appointments/42/result \
     "adoptionResult": "APPROVED",
     "notes": "Adotante demonstrou boas condições para receber o animal."
   }'
-```
-
-**Body da requisição:**
-
-```json
-{
-  "adoptionResult": "APPROVED",
-  "notes": "Adotante demonstrou boas condições para receber o animal."
-}
 ```
 
 **Resposta esperada (`200 OK`):**
@@ -485,10 +476,13 @@ O projeto segue os princípios de **Clean Architecture** e **separação de resp
 
 ```
 com.joao.adotec/
-├── config/          # Configurações (bootstrap de dados de desenvolvimento)
+├── config/          # Configurações (CacheConfig Redis, bootstrap de dados dev)
 ├── controllers/     # Camada de apresentação (endpoints REST)
+│   ├── AuthController, PetController, PetPhotoController
+│   ├── AppointmentController, TimeSlotController
+│   ├── DashboardController, EmployeeController
 ├── dto/             # Data Transfer Objects (request, response, commons)
-├── enums/           # Enumerações (AppRole, AppointmentStatus, AdoptionResult, PetSize)
+├── enums/           # Enumerações (AppRole, AppointmentStatus, AdoptionResult, PetSize, PetGender)
 ├── exceptions/      # Exceções customizadas e handler global
 ├── mappers/         # Conversões Entity ↔ DTO via MapStruct
 ├── models/          # Entidades JPA (Pet, Appointment, TimeSlot, User, Role, PetPhoto)
@@ -499,18 +493,19 @@ com.joao.adotec/
 
 ### Principais tecnologias
 
-| Tecnologia                  | Uso                                                  |
-|-----------------------------|------------------------------------------------------|
-| Spring Boot 4.0.4           | Framework principal                                  |
-| Spring Security + JWT (JJWT 0.12.6) | Autenticação e autorização               |
-| Spring Data JPA + Hibernate | Persistência com MySQL                               |
-| MapStruct 1.6.3             | Mapeamento Entity ↔ DTO via geração de código        |
-| Bucket4j 8.16.1 + Redis     | Rate limiting distribuído no endpoint de login       |
-| Cloudinary SDK 1.39.0       | Upload e gerenciamento de fotos de pets              |
-| SpringDoc OpenAPI 3.0.2     | Documentação automática da API (Swagger UI)          |
-| Spring Boot Actuator        | Monitoramento de saúde da aplicação                  |
-| Lombok                      | Redução de boilerplate (getters, construtores, etc.) |
-| H2 Database                 | Banco de dados in-memory para testes                 |
+| Tecnologia                         | Uso                                                  |
+|------------------------------------|------------------------------------------------------|
+| Spring Boot 4.0.4                  | Framework principal                                  |
+| Spring Security + JWT (JJWT 0.12.6)| Autenticação e autorização                          |
+| Spring Data JPA + Hibernate        | Persistência com MySQL                               |
+| Spring Data Redis + Jackson 3.x    | Cache de pets em destaque (serialização JSON)        |
+| MapStruct 1.6.3                    | Mapeamento Entity ↔ DTO via geração de código        |
+| Bucket4j 8.16.1 + Redis            | Rate limiting distribuído no endpoint de login       |
+| Cloudinary SDK 1.39.0              | Upload e gerenciamento de fotos de pets              |
+| SpringDoc OpenAPI 3.0.2            | Documentação automática da API (Swagger UI)          |
+| Spring Boot Actuator               | Monitoramento de saúde da aplicação                  |
+| Lombok                             | Redução de boilerplate (getters, construtores, etc.) |
+| H2 Database                        | Banco de dados in-memory para testes                 |
 
 ---
 
