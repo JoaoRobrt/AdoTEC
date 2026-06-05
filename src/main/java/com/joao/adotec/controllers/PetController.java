@@ -33,10 +33,14 @@ public class PetController {
     })
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponseDTO<PetResponseDTO>>> getAllAvailablePets(
-            @RequestParam(required = false) com.joao.adotec.enums.PetSize size,
+            @RequestParam(required = false) com.joao.adotec.enums.PetSize petSize,
+            @RequestParam(required = false) String species,
+            @RequestParam(required = false) Integer minAge,
+            @RequestParam(required = false) Integer maxAge,
+            @RequestParam(required = false) com.joao.adotec.enums.PetGender gender,
             @RequestParam(required = false) String name,
-            @PageableDefault(size = 10, page = 0) Pageable pageable) {
-        Page<PetResponseDTO> petsPage = petService.getAllAvailablePets(size, name, pageable);
+            @PageableDefault(size = 12, page = 0) Pageable pageable) {
+        Page<PetResponseDTO> petsPage = petService.getAllAvailablePets(petSize, species, minAge, maxAge, gender, name, pageable);
         PageResponseDTO<PetResponseDTO> pageResponse = new PageResponseDTO<>(
                 petsPage.getContent(),
                 PageMetaDTO.fromPage(petsPage)

@@ -113,6 +113,7 @@ class PetServiceTest {
                 pet.getDescription(),
                 pet.getAgeInMonths(),
                 pet.getSize(),
+                com.joao.adotec.enums.PetGender.MALE,
                 java.util.List.of(),
                 pet.getIsAvailableForAdoption(),
                 pet.getCreatedAt()
@@ -156,12 +157,12 @@ class PetServiceTest {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.Pageable.unpaged();
         com.joao.adotec.enums.PetSize size = com.joao.adotec.enums.PetSize.SMALL;
         
-        given(petRepository.findAvailablePetsWithFilters(size, null, pageable))
+        given(petRepository.findAvailablePetsWithFilters(size, null, null, null, null, null, pageable))
                 .willReturn(org.springframework.data.domain.Page.empty());
 
-        petService.getAllAvailablePets(size, null, pageable);
+        petService.getAllAvailablePets(size, null, null, null, null, null, pageable);
 
-        org.mockito.Mockito.verify(petRepository).findAvailablePetsWithFilters(size, null, pageable);
+        org.mockito.Mockito.verify(petRepository).findAvailablePetsWithFilters(size, null, null, null, null, null, pageable);
     }
 
     @Test
@@ -170,12 +171,12 @@ class PetServiceTest {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.Pageable.unpaged();
         String name = "Rex";
         
-        given(petRepository.findAvailablePetsWithFilters(null, name, pageable))
+        given(petRepository.findAvailablePetsWithFilters(null, null, null, null, null, name, pageable))
                 .willReturn(org.springframework.data.domain.Page.empty());
 
-        petService.getAllAvailablePets(null, name, pageable);
+        petService.getAllAvailablePets(null, null, null, null, null, name, pageable);
 
-        org.mockito.Mockito.verify(petRepository).findAvailablePetsWithFilters(null, name, pageable);
+        org.mockito.Mockito.verify(petRepository).findAvailablePetsWithFilters(null, null, null, null, null, name, pageable);
     }
 
     @Test
@@ -185,11 +186,11 @@ class PetServiceTest {
         com.joao.adotec.enums.PetSize size = com.joao.adotec.enums.PetSize.SMALL;
         String name = "Rex";
         
-        given(petRepository.findAvailablePetsWithFilters(size, name, pageable))
+        given(petRepository.findAvailablePetsWithFilters(size, null, null, null, null, name, pageable))
                 .willReturn(org.springframework.data.domain.Page.empty());
 
-        petService.getAllAvailablePets(size, name, pageable);
+        petService.getAllAvailablePets(size, null, null, null, null, name, pageable);
 
-        org.mockito.Mockito.verify(petRepository).findAvailablePetsWithFilters(size, name, pageable);
+        org.mockito.Mockito.verify(petRepository).findAvailablePetsWithFilters(size, null, null, null, null, name, pageable);
     }
 }
