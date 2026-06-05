@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.joao.adotec.enums.AppointmentStatus;
 
 @RestController
 @RequestMapping("/appointments")
@@ -100,6 +101,8 @@ public class AppointmentController {
         @PreAuthorize("hasRole('ADOPTER') or hasRole('EMPLOYEE')")
         public ResponseEntity<ApiResponse<PageResponseDTO<AppointmentResponseDTO>>> getMyAppointments(
                         Authentication authentication,
+                        @RequestParam(required = false) AppointmentStatus status,
+                        @RequestParam(defaultValue = "true") Boolean showCanceled,
                         @PageableDefault(size = 10, page = 0) Pageable pageable) {
 
                 UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -110,9 +113,9 @@ public class AppointmentController {
 
                 Page<Appointment> appointmentsPage;
                 if (isEmployee) {
-                        appointmentsPage = appointmentService.getAppointmentsByEmployee(userId, pageable);
+                        appointmentsPage = appointmentService.getAppointmentsByEmployee(userId, status, showCanceled, pageable);
                 } else {
-                        appointmentsPage = appointmentService.getAppointmentsByAdopter(userId, pageable);
+                        appointmentsPage = appointmentService.getAppointmentsByAdopter(userId, status, showCanceled, pageable);
                 }
 
                 Page<AppointmentResponseDTO> mappedPage = appointmentsPage.map(appointmentMapper::toDTO);
@@ -132,8 +135,12 @@ public class AppointmentController {
         @GetMapping
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<PageResponseDTO<AppointmentResponseDTO>>> getAllAppointments(
+                        @RequestParam(required = false) AppointmentStatus status,
+                        @RequestParam(required = false) Long employeeId,
+                        @RequestParam(required = false) Boolean unassigned,
+                        @RequestParam(defaultValue = "true") Boolean showCanceled,
                         @PageableDefault(size = 10, page = 0) Pageable pageable) {
-                Page<Appointment> appointmentsPage = appointmentService.getAllAppointments(pageable);
+                Page<Appointment> appointmentsPage = appointmentService.getAllAppointments(status, employeeId, unassigned, showCanceled, pageable);
                 Page<AppointmentResponseDTO> mappedPage = appointmentsPage.map(appointmentMapper::toDTO);
 
                 PageResponseDTO<AppointmentResponseDTO> pageResponse = new PageResponseDTO<>(

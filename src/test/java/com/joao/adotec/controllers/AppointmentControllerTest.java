@@ -108,7 +108,7 @@ class AppointmentControllerTest {
     void getAllAppointments_withAdmin_returns200() throws Exception {
         UsernamePasswordAuthenticationToken auth = createAuthToken(1L, "ADMIN");
 
-        given(appointmentService.getAllAppointments(any(org.springframework.data.domain.Pageable.class)))
+        given(appointmentService.getAllAppointments(any(), any(), any(), any(), any(org.springframework.data.domain.Pageable.class)))
                 .willReturn(new org.springframework.data.domain.PageImpl<>(List.of(new Appointment())));
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/appointments")
