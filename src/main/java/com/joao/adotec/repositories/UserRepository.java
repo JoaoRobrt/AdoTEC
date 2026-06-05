@@ -15,4 +15,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByName(String name);
 
     List<User> findByRoles_RoleName(com.joao.adotec.enums.AppRole roleName);
+
+    long countByRoles_RoleName(com.joao.adotec.enums.AppRole roleName);
 }

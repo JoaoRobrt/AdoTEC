@@ -19,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -33,6 +35,10 @@ public class AppointmentService {
     private final VisitScheduleProperties scheduleProperties;
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "dashboardMetrics", allEntries = true),
+            @CacheEvict(value = "dashboardUnassigned", allEntries = true)
+    })
     public Appointment createAppointment(Long adopterId, Long petId, String timeSlotId) {
         User adopter = userRepository.findById(adopterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", adopterId));
@@ -51,6 +57,10 @@ public class AppointmentService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "dashboardMetrics", allEntries = true),
+            @CacheEvict(value = "dashboardUnassigned", allEntries = true)
+    })
     public Appointment createAppointment(User adopter, Pet pet, LocalDate appointmentDate, LocalTime startTime) {
 
         if (appointmentDate.isBefore(LocalDate.now())) {
@@ -84,6 +94,10 @@ public class AppointmentService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "dashboardMetrics", allEntries = true),
+            @CacheEvict(value = "dashboardUnassigned", allEntries = true)
+    })
     public Appointment assignEmployee(Long appointmentId, Long employeeId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
@@ -169,6 +183,10 @@ public class AppointmentService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "dashboardMetrics", allEntries = true),
+            @CacheEvict(value = "dashboardUnassigned", allEntries = true)
+    })
     public Appointment registerResult(Long appointmentId, com.joao.adotec.dto.AppointmentResultDTO resultDto) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
@@ -191,6 +209,10 @@ public class AppointmentService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "dashboardMetrics", allEntries = true),
+            @CacheEvict(value = "dashboardUnassigned", allEntries = true)
+    })
     public Appointment cancelAppointment(Long appointmentId, Long loggedUserId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));

@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.List;
 import java.util.Set;
@@ -71,6 +72,7 @@ public class UserService {
     // ── Criação ───────────────────────────────────────────────
 
     @Transactional
+    @CacheEvict(value = "dashboardMetrics", allEntries = true)
     public UserResponse createEmployee(CreateEmployeeRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DomainException(HttpStatus.CONFLICT, "E-mail já está em uso.");
@@ -117,6 +119,7 @@ public class UserService {
     // ── Ativar / Desativar ────────────────────────────────────
 
     @Transactional
+    @CacheEvict(value = "dashboardMetrics", allEntries = true)
     public UserResponse toggleActive(Long id, Long currentUserId) {
         if (id.equals(currentUserId)) {
             throw new BusinessException("Você não pode desativar a si mesmo.");
