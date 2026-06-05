@@ -19,9 +19,17 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Pet p WHERE p.isAvailableForAdoption = true AND p.isActive = true " +
            "AND (:size IS NULL OR p.size = :size) " +
-           "AND (:name IS NULL OR LOWER(p.petName) LIKE LOWER(CONCAT('%', :name, '%')))")
+           "AND (:name IS NULL OR LOWER(p.petName) LIKE LOWER(CONCAT('%', :name, '%'))) " +
+           "AND (:species IS NULL OR LOWER(p.species) = LOWER(:species)) " +
+           "AND (:minAge IS NULL OR p.ageInMonths >= :minAge) " +
+           "AND (:maxAge IS NULL OR p.ageInMonths <= :maxAge) " +
+           "AND (:gender IS NULL OR p.gender = :gender)")
     Page<Pet> findAvailablePetsWithFilters(
             @org.springframework.data.repository.query.Param("size") com.joao.adotec.enums.PetSize size, 
+            @org.springframework.data.repository.query.Param("species") String species, 
+            @org.springframework.data.repository.query.Param("minAge") Integer minAge, 
+            @org.springframework.data.repository.query.Param("maxAge") Integer maxAge, 
+            @org.springframework.data.repository.query.Param("gender") com.joao.adotec.enums.PetGender gender, 
             @org.springframework.data.repository.query.Param("name") String name, 
             Pageable pageable);
 

@@ -1,6 +1,7 @@
 package com.joao.adotec.dto;
 
 import com.joao.adotec.enums.PetSize;
+import com.joao.adotec.enums.PetGender;
 import java.time.Instant;
 import java.util.List;
 
@@ -11,6 +12,7 @@ public record PetResponseDTO(
         String description,
         Integer ageInMonths,
         PetSize size,
+        PetGender gender,
         List<PetPhotoResponseDTO> photos,
         Boolean isAvailableForAdoption,
         Instant createdAt

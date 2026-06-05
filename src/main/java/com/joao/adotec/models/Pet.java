@@ -53,6 +53,10 @@ public class Pet {
     @Column(nullable = false)
     private PetSize size;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private com.joao.adotec.enums.PetGender gender;
+
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PetPhoto> photos = new ArrayList<>();
 
