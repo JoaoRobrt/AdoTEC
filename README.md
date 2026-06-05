@@ -4,7 +4,6 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge&logo=github-actions)](https://github.com/JoaoRobrt/AdoTEC)
 [![Version](https://img.shields.io/badge/version-0.2.0--SNAPSHOT-blue?style=for-the-badge)](https://github.com/JoaoRobrt/AdoTEC)
-[![License](https://img.shields.io/badge/license-%E2%9A%A0%EF%B8%8F%20preencher-yellow?style=for-the-badge)](https://github.com/JoaoRobrt/AdoTEC)
 [![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.4-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
