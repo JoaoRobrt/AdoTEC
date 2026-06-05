@@ -96,16 +96,18 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Appointment> getAppointmentsByAdopter(Long adopterId, Pageable pageable) {
+    public Page<Appointment> getAppointmentsByAdopter(Long adopterId, AppointmentStatus status, Boolean showCanceled, Pageable pageable) {
         User adopter = userRepository.findById(adopterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", adopterId));
-        return appointmentRepository.findByAdopterOrderByCreatedAtDesc(adopter, pageable);
+        Pageable mappedPageable = mapPageableSort(pageable);
+        return appointmentRepository.findByAdopterWithFilters(adopterId, status, showCanceled, mappedPageable);
     }
 
     @Transactional(readOnly = true)
-    public Page<Appointment> getAppointmentsByEmployee(Long employeeId, Pageable pageable) {
-        User employee = getEmployeeValidated(employeeId);
-        return appointmentRepository.findByEmployeeOrderByCreatedAtDesc(employee, pageable);
+    public Page<Appointment> getAppointmentsByEmployee(Long employeeId, AppointmentStatus status, Boolean showCanceled, Pageable pageable) {
+        getEmployeeValidated(employeeId);
+        Pageable mappedPageable = mapPageableSort(pageable);
+        return appointmentRepository.findByEmployeeWithFilters(employeeId, status, showCanceled, mappedPageable);
     }
 
     private User getEmployeeValidated(Long employeeId) {
@@ -136,8 +138,34 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Appointment> getAllAppointments(Pageable pageable) {
-        return appointmentRepository.findAll(pageable);
+    public Page<Appointment> getAllAppointments(AppointmentStatus status, Long employeeId, Boolean unassigned, Boolean showCanceled, Pageable pageable) {
+        Pageable mappedPageable = mapPageableSort(pageable);
+        return appointmentRepository.findAllWithFilters(status, employeeId, unassigned, showCanceled, mappedPageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Appointment> getUnassignedAppointments(Pageable pageable) {
+        Pageable mappedPageable = mapPageableSort(pageable);
+        return appointmentRepository.findUnassignedAppointments(mappedPageable);
+    }
+
+    private Pageable mapPageableSort(Pageable pageable) {
+        if (pageable.getSort().isSorted()) {
+            java.util.List<org.springframework.data.domain.Sort.Order> orders = pageable.getSort().stream()
+                .map(order -> {
+                    if ("petName".equals(order.getProperty())) {
+                        return new org.springframework.data.domain.Sort.Order(order.getDirection(), "pet.petName");
+                    }
+                    return order;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            return org.springframework.data.domain.PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                org.springframework.data.domain.Sort.by(orders)
+            );
+        }
+        return pageable;
     }
 
     @Transactional
