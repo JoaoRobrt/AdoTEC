@@ -24,9 +24,16 @@ public class PetService {
     private final PetMapper petMapper;
 
     @Transactional(readOnly = true)
-    public Page<PetResponseDTO> getAllAvailablePets(com.joao.adotec.enums.PetSize size, String name, Pageable pageable) {
-        // Filter: isAvailableForAdoption=true AND isActive=true (not soft-deleted), plus size and name
-        return petRepository.findAvailablePetsWithFilters(size, name, pageable).map(petMapper::toDTO);
+    public Page<PetResponseDTO> getAllAvailablePets(
+            com.joao.adotec.enums.PetSize size,
+            String species,
+            Integer minAge,
+            Integer maxAge,
+            com.joao.adotec.enums.PetGender gender,
+            String name,
+            Pageable pageable) {
+        // Filter: isAvailableForAdoption=true AND isActive=true (not soft-deleted), plus size, species, age, gender, and name
+        return petRepository.findAvailablePetsWithFilters(size, species, minAge, maxAge, gender, name, pageable).map(petMapper::toDTO);
     }
 
     /**

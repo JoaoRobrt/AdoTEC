@@ -62,17 +62,17 @@ class PetControllerSecurityTest {
     }
 
     private PetRequestDTO validPetRequest() {
-        return new PetRequestDTO("Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM);
+        return new PetRequestDTO("Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, com.joao.adotec.enums.PetGender.MALE);
     }
 
     private PetResponseDTO samplePetResponse() {
-        return new PetResponseDTO(1L, "Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, java.util.List.of(), true, Instant.now());
+        return new PetResponseDTO(1L, "Rex", "Dog", "A friendly dog", 12, PetSize.MEDIUM, com.joao.adotec.enums.PetGender.MALE, java.util.List.of(), true, Instant.now());
     }
 
     @Test
     @DisplayName("GET /pets → 200 and returns list")
     void listPets_shouldReturn200() throws Exception {
-        given(petService.getAllAvailablePets(any(), any(), any(org.springframework.data.domain.Pageable.class)))
+        given(petService.getAllAvailablePets(any(), any(), any(), any(), any(), any(), any(org.springframework.data.domain.Pageable.class)))
                 .willReturn(new org.springframework.data.domain.PageImpl<>(List.of(samplePetResponse())));
 
         mockMvc.perform(get("/pets"))
@@ -162,7 +162,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("POST /pets → 400 when petName is blank")
     void createPet_blankName_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.SMALL);
+        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.SMALL, com.joao.adotec.enums.PetGender.MALE);
         mockMvc.perform(post("/pets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -172,7 +172,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("POST /pets → 400 when size is null")
     void createPet_nullSize_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("Rex", "Dog", "desc", 6, null);
+        PetRequestDTO invalid = new PetRequestDTO("Rex", "Dog", "desc", 6, null, com.joao.adotec.enums.PetGender.MALE);
         mockMvc.perform(post("/pets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -194,7 +194,7 @@ class PetControllerSecurityTest {
     @Test
     @DisplayName("PUT /pets/{id} → 400 when petName is blank")
     void updatePet_blankName_shouldReturn400() throws Exception {
-        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.BIG);
+        PetRequestDTO invalid = new PetRequestDTO("", "Dog", "desc", 6, PetSize.BIG, com.joao.adotec.enums.PetGender.MALE);
         mockMvc.perform(put("/pets/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))

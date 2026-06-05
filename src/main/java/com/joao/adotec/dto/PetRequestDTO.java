@@ -1,6 +1,7 @@
 package com.joao.adotec.dto;
 
 import com.joao.adotec.enums.PetSize;
+import com.joao.adotec.enums.PetGender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -17,6 +18,9 @@ public record PetRequestDTO(
         Integer ageInMonths,
 
         @NotNull(message = "Pet size is required")
-        PetSize size
+        PetSize size,
+
+        @NotNull(message = "Pet gender is required")
+        PetGender gender
 ) {
 }
