@@ -14,6 +14,8 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
     /** Public listing: only active (not deleted) AND available pets. */
     Page<Pet> findByIsAvailableForAdoptionTrueAndIsActiveTrue(Pageable pageable);
 
+    long countByIsAvailableForAdoptionTrueAndIsActiveTrue();
+
     /** Legacy alias kept for reference — now delegates to the above. */
     Page<Pet> findByIsAvailableForAdoptionTrue(Pageable pageable);
 

@@ -1,18 +1,15 @@
 package com.joao.adotec.controllers;
 
 import com.joao.adotec.dto.AppointmentResponseDTO;
-import com.joao.adotec.dto.response.ApiResponse;
+import com.joao.adotec.dto.DashboardMetricsDTO;
 import com.joao.adotec.dto.commons.PageMetaDTO;
 import com.joao.adotec.dto.commons.PageResponseDTO;
-import com.joao.adotec.mappers.AppointmentMapper;
-import com.joao.adotec.models.Appointment;
-import com.joao.adotec.services.AppointmentService;
+import com.joao.adotec.dto.commons.DashboardUnassignedCacheWrapper;
+import com.joao.adotec.dto.response.ApiResponse;
+import com.joao.adotec.services.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,20 +23,34 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('ADMIN')")
 public class DashboardController {
 
-    private final AppointmentService appointmentService;
-    private final AppointmentMapper appointmentMapper;
+    private final DashboardService dashboardService;
+
+    @Operation(summary = "Get dashboard metrics", description = "Retrieves consolidated statistics for the admin dashboard. Requires ADMIN role.")
+    @GetMapping("/metrics")
+    public ResponseEntity<ApiResponse<DashboardMetricsDTO>> getDashboardMetrics() {
+        DashboardMetricsDTO metrics = dashboardService.getDashboardMetrics();
+        return ResponseEntity.ok(ApiResponse.success("Dashboard metrics fetched successfully", metrics));
+    }
 
     @Operation(summary = "Get unassigned appointments", description = "Retrieves a listing of appointments that are pending assignment. Requires ADMIN role.")
     @GetMapping("/unassigned-appointments")
-    public ResponseEntity<ApiResponse<PageResponseDTO<AppointmentResponseDTO>>> getUnassignedAppointments(
-            @PageableDefault(size = 5, page = 0) Pageable pageable) {
+    public ResponseEntity<ApiResponse<PageResponseDTO<AppointmentResponseDTO>>> getUnassignedAppointments() {
+        DashboardUnassignedCacheWrapper cached = dashboardService.getUnassignedAppointments();
         
-        Page<Appointment> appointmentsPage = appointmentService.getUnassignedAppointments(pageable);
-        Page<AppointmentResponseDTO> mappedPage = appointmentsPage.map(appointmentMapper::toDTO);
-
+        // Wrap the list in a PageResponseDTO for frontend compatibility
+        int totalElements = cached.getAppointments().size();
+        PageMetaDTO meta = new PageMetaDTO(
+                0,
+                5,
+                (long) totalElements,
+                1,
+                true,
+                true,
+                java.util.Collections.emptyList()
+        );
         PageResponseDTO<AppointmentResponseDTO> pageResponse = new PageResponseDTO<>(
-                mappedPage.getContent(),
-                PageMetaDTO.fromPage(mappedPage)
+                cached.getAppointments(),
+                meta
         );
 
         return ResponseEntity.ok(ApiResponse.success("Unassigned appointments fetched successfully", pageResponse));

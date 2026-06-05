@@ -54,3 +54,5 @@ cache:
   pets:
     destaque:
       ttl-minutes: 10
+  dashboard:
+    ttl-seconds: 60

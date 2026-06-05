@@ -9,6 +9,7 @@ import com.joao.adotec.repositories.PetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,10 @@ public class PetService {
     }
 
     @Transactional
-    @CacheEvict(value = "petsDestaque", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "petsDestaque", allEntries = true),
+            @CacheEvict(value = "dashboardMetrics", allEntries = true)
+    })
     public PetResponseDTO createPet(PetRequestDTO petDto) {
         Pet pet = petMapper.toEntity(petDto);
         pet.setIsAvailableForAdoption(true);
@@ -73,7 +77,10 @@ public class PetService {
     }
 
     @Transactional
-    @CacheEvict(value = "petsDestaque", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "petsDestaque", allEntries = true),
+            @CacheEvict(value = "dashboardMetrics", allEntries = true)
+    })
     public PetResponseDTO updatePet(Long id, PetRequestDTO petDto) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", id));
@@ -91,7 +98,10 @@ public class PetService {
      * appear in any public listing or be bookable for new appointments.
      */
     @Transactional
-    @CacheEvict(value = "petsDestaque", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "petsDestaque", allEntries = true),
+            @CacheEvict(value = "dashboardMetrics", allEntries = true)
+    })
     public void deletePet(Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet", id));
