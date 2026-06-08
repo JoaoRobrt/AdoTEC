@@ -20,15 +20,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "Endpoints for user authentication and registration")
+@Tag(name = "Authentication", description = "Endpoints para autenticação de usuários e registro de novos adotantes")
 public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "Authenticate user", description = "Authenticates a user with email and password, returning a JWT token with user info.")
+    @Operation(
+            summary = "Autenticar usuário (Login)",
+            description = "Valida o e-mail e senha informados. Retorna as informações do usuário autenticado e o token JWT a ser utilizado nas requisições protegidas."
+    )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "User authenticated successfully"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid credentials")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Autenticação realizada com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     })
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserInfoResponse>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -36,10 +39,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("User authenticated successfully", userInfoResponse));
     }
 
-    @Operation(summary = "Register user", description = "Registers a new user (adopter) in the system.")
+    @Operation(
+            summary = "Registrar novo adotante",
+            description = "Cadastra um novo usuário adotante no sistema (ROLE_ADOPTER). O e-mail informado deve ser único."
+    )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "User registered successfully"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Email already in use or validation error")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Cadastro realizado com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "E-mail já cadastrado ou payload inválido")
     })
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserInfoResponse>> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
@@ -47,10 +53,13 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered successfully", userInfoResponse));
     }
 
-    @Operation(summary = "Get current user", description = "Returns the authenticated user data.")
+    @Operation(
+            summary = "Obter dados do usuário atual",
+            description = "Retorna os dados do usuário autenticado a partir do token JWT enviado no cabeçalho Authorization."
+    )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "User info retrieved successfully"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Not authenticated")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Dados retornados com sucesso"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Não autenticado ou token inválido")
     })
     @org.springframework.web.bind.annotation.GetMapping("/me")
     public ResponseEntity<ApiResponse<com.joao.adotec.dto.UserResponse>> getCurrentUser(
