@@ -32,6 +32,9 @@ public class CacheConfig {
     @Value("${cache.pets.destaque.ttl-minutes:10}")
     private long petsDestaqueTtlMinutes;
 
+    @Value("${cache.dashboard.ttl-seconds:60}")
+    private long dashboardTtlSeconds;
+
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
 
@@ -57,10 +60,16 @@ public class CacheConfig {
         RedisCacheConfiguration petsDestaqueConfig = defaultConfig
                 .entryTtl(Duration.ofMinutes(petsDestaqueTtlMinutes));
 
+        // Configuração específica dos caches do Dashboard com TTL dedicado (curto)
+        RedisCacheConfiguration dashboardConfig = defaultConfig
+                .entryTtl(Duration.ofSeconds(dashboardTtlSeconds));
+
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
                 .withInitialCacheConfigurations(Map.of(
-                        "petsDestaque", petsDestaqueConfig
+                        "petsDestaque", petsDestaqueConfig,
+                        "dashboardMetrics", dashboardConfig,
+                        "dashboardUnassigned", dashboardConfig
                 ))
                 .build();
     }
