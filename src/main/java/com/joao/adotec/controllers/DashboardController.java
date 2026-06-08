@@ -4,7 +4,6 @@ import com.joao.adotec.dto.AppointmentResponseDTO;
 import com.joao.adotec.dto.DashboardMetricsDTO;
 import com.joao.adotec.dto.commons.PageMetaDTO;
 import com.joao.adotec.dto.commons.PageResponseDTO;
-import com.joao.adotec.dto.commons.DashboardUnassignedCacheWrapper;
 import com.joao.adotec.dto.response.ApiResponse;
 import com.joao.adotec.services.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,24 +34,7 @@ public class DashboardController {
     @Operation(summary = "Get unassigned appointments", description = "Retrieves a listing of appointments that are pending assignment. Requires ADMIN role.")
     @GetMapping("/unassigned-appointments")
     public ResponseEntity<ApiResponse<PageResponseDTO<AppointmentResponseDTO>>> getUnassignedAppointments() {
-        DashboardUnassignedCacheWrapper cached = dashboardService.getUnassignedAppointments();
-        
-        // Wrap the list in a PageResponseDTO for frontend compatibility
-        int totalElements = cached.getAppointments().size();
-        PageMetaDTO meta = new PageMetaDTO(
-                0,
-                5,
-                (long) totalElements,
-                1,
-                true,
-                true,
-                java.util.Collections.emptyList()
-        );
-        PageResponseDTO<AppointmentResponseDTO> pageResponse = new PageResponseDTO<>(
-                cached.getAppointments(),
-                meta
-        );
-
+        PageResponseDTO<AppointmentResponseDTO> pageResponse = dashboardService.getUnassignedAppointments();
         return ResponseEntity.ok(ApiResponse.success("Unassigned appointments fetched successfully", pageResponse));
     }
 }

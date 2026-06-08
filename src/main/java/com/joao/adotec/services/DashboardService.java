@@ -1,7 +1,8 @@
 package com.joao.adotec.services;
 
 import com.joao.adotec.dto.DashboardMetricsDTO;
-import com.joao.adotec.dto.commons.DashboardUnassignedCacheWrapper;
+import com.joao.adotec.dto.commons.PageResponseDTO;
+import com.joao.adotec.dto.commons.PageMetaDTO;
 import com.joao.adotec.dto.AppointmentResponseDTO;
 import com.joao.adotec.enums.AppRole;
 import com.joao.adotec.enums.AppointmentStatus;
@@ -56,7 +57,7 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "dashboardUnassigned", key = "'unassigned'")
-    public DashboardUnassignedCacheWrapper getUnassignedAppointments() {
+    public PageResponseDTO<AppointmentResponseDTO> getUnassignedAppointments() {
         log.info("Cache MISS — buscando unassigned");
 
         // Fetch top 5 unassigned appointments ordered by date/time
@@ -66,6 +67,17 @@ public class DashboardService {
                 .map(appointmentMapper::toDTO)
                 .toList();
 
-        return new DashboardUnassignedCacheWrapper(appointments);
+        int totalElements = appointments.size();
+        PageMetaDTO meta = new PageMetaDTO(
+                0,
+                5,
+                (long) totalElements,
+                1,
+                true,
+                true,
+                java.util.Collections.emptyList()
+        );
+
+        return new PageResponseDTO<>(appointments, meta);
     }
 }
